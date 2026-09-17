@@ -66,6 +66,10 @@ function handleEditCell(id: string) {
   }
 }
 
+function handleCellUpdate(payload: { id: string; updates: CellUpdate }) {
+  updateCell(payload.id, payload.updates)
+}
+
 function handleSaveCell(payload: { id: string; updates: CellUpdate }) {
   updateCell(payload.id, payload.updates)
   showCellEdit.value = false
@@ -114,13 +118,13 @@ function handleReorder(newCells: BingoCell[]) {
         :config="config" 
         :mode="mode" 
         :unlocked-count="unlockedCount"
-        @update-config="handleConfigUpdate"
-        @update-theme="handleThemeUpdate"
+        @update:config="handleConfigUpdate"
+        @update:theme="handleThemeUpdate"
         @set-grid-size="setGridSize"
         @shuffle="shuffleGrid"
-        @clear="clearAll"
+        @clear-all="clearAll"
         @toggle-mode="toggleMode"
-        @show-bulk-import="showBulkImport = true"
+        @open-bulk-import="showBulkImport = true"
         @export-image="handleExportImage"
         @export-pdf="handleExportPdf"
       />
@@ -136,6 +140,7 @@ function handleReorder(newCells: BingoCell[]) {
         :cells="cells" 
         :config="config" 
         :mode="mode" 
+        @update:cell="handleCellUpdate"
         @edit-cell="handleEditCell"
         @toggle-lock="toggleLock"
         @toggle-mark="toggleMark"
