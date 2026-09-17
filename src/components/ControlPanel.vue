@@ -76,7 +76,7 @@ const setBorderRadiusValue = (val: string) => {
     </div>
 
     <!-- 1. Grid Size -->
-    <details class="panel-section" open>
+    <details class="panel-section" name="panel-accordion">
       <summary>Grid Size</summary>
       <div class="section-content">
         <div class="grid-size-buttons">
@@ -95,7 +95,7 @@ const setBorderRadiusValue = (val: string) => {
     </details>
 
     <!-- 2. Card Details -->
-    <details class="panel-section" open>
+    <details class="panel-section" name="panel-accordion" open>
       <summary>Card Details</summary>
       <div class="section-content">
         <div class="form-group">
@@ -169,7 +169,7 @@ const setBorderRadiusValue = (val: string) => {
     </details>
 
     <!-- 3. Theme -->
-    <details class="panel-section" open>
+    <details class="panel-section" name="panel-accordion">
       <summary>Theme & Styles</summary>
       <div class="section-content">
         <div class="color-grid">
@@ -240,7 +240,7 @@ const setBorderRadiusValue = (val: string) => {
     </details>
 
     <!-- 4. Actions -->
-    <details class="panel-section" open>
+    <details class="panel-section" name="panel-accordion">
       <summary>Actions</summary>
       <div class="section-content actions-grid">
         <button 
@@ -271,7 +271,7 @@ const setBorderRadiusValue = (val: string) => {
     </details>
 
     <!-- 6. Export -->
-    <details class="panel-section" open>
+    <details class="panel-section" name="panel-accordion">
       <summary>Export</summary>
       <div class="section-content actions-grid">
         <button class="btn-action btn-export" @click="emit('export-image', 'png')">
