@@ -106,6 +106,7 @@ dialog::backdrop {
 /* ===== Dark Mode ===== */
 html.dark {
   color-scheme: dark;
+  --star-fill: #334155;
 }
 
 html.dark body {

@@ -101,7 +101,7 @@ const themeStyles = computed(() => ({
 <style scoped>
 .bingo-card {
   width: 100%;
-  max-width: 800px;
+  max-width: min(800px, calc(100dvh - 180px));
   background: var(--card-bg);
   padding: clamp(0.5rem, 3vw, 1.5rem);
   border-radius: 12px;

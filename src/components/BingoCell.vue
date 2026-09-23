@@ -12,11 +12,6 @@
     @dblclick="handleDoubleClick"
     @touchend.passive="handleTouchEnd"
   >
-    <!-- Background Icon for Free Space -->
-    <div v-if="cell.isFreeSpace" class="free-space-bg">
-      <Star class="star-icon" />
-    </div>
-
     <!-- Image -->
     <img
       v-if="cell.imageUrl"
@@ -76,7 +71,7 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue';
-import { Lock, Unlock, Pencil, Star } from '@lucide/vue';
+import { Lock, Unlock, Pencil } from '@lucide/vue';
 import type { BingoCell, AppMode, GridDimension, CellUpdate } from '@/types/bingo';
 
 const props = defineProps<{
@@ -249,27 +244,7 @@ const cancelEdit = () => {
 .large-star {
   font-size: 2.5em !important;
   line-height: 1;
-}
-
-.free-space-bg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 0;
-  opacity: 0.05;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.star-icon {
-  width: 60%;
-  height: 60%;
-  color: var(--text-color, currentColor);
+  color: var(--star-fill, #94a3b8);
 }
 
 .edit-overlay {
