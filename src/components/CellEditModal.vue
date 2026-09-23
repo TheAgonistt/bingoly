@@ -243,6 +243,7 @@ const handleClose = () => {
 .dialog-content {
   display: flex;
   flex-direction: column;
+  max-height: 90dvh;
 }
 
 .dialog-header {
@@ -251,6 +252,7 @@ const handleClose = () => {
   justify-content: space-between;
   padding: 1.5rem;
   border-bottom: 1px solid var(--border-color, #eaeaea);
+  flex-shrink: 0;
 }
 
 .dialog-title {
@@ -285,6 +287,7 @@ const handleClose = () => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  overflow-y: auto;
 }
 
 .form-group {
@@ -445,6 +448,7 @@ label {
   justify-content: flex-end;
   gap: 1rem;
   padding: 1.5rem;
+  flex-shrink: 0;
   border-top: 1px solid var(--border-color, #eaeaea);
 }
 

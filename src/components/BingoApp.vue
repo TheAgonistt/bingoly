@@ -333,7 +333,7 @@ html.dark .export-progress-card {
   overflow-y: auto;
   background: white;
   border-right: 1px solid #e5e7eb;
-  padding-bottom: 2rem;
+  padding-bottom: 4rem;
 }
 
 .sidebar-header {

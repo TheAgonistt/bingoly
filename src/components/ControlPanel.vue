@@ -316,8 +316,6 @@ const setBorderRadiusValue = (val: string) => {
 <style scoped>
 .control-panel {
   width: 100%;
-  height: 100%;
-  overflow-y: auto;
   padding: 1rem;
   background-color: #f8fafc;
   display: flex;
@@ -394,11 +392,7 @@ const setBorderRadiusValue = (val: string) => {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  /*gap: 1rem;*/
-}
-
-.section-content .form-group:first-child {
-  margin-block-start: 0;
+  gap: 1.25rem;
 }
 
 .grid-size-buttons {
@@ -436,7 +430,6 @@ const setBorderRadiusValue = (val: string) => {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  margin-block-start: 0.5rem;
 }
 
 .form-group label {
