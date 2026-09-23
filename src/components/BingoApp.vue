@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watchEffect } from 'vue'
+import { ref, computed, onMounted, watchEffect, nextTick } from 'vue'
 import { Menu, X, Moon, Sun } from '@lucide/vue'
 import BingoBoard from './BingoBoard.vue'
 import ControlPanel from './ControlPanel.vue'
@@ -47,15 +47,52 @@ const unlockedCount = computed(() => {
 })
 
 // Event Handlers
-async function handleExportImage(format: 'png' | 'jpeg') {
+async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: number }) {
   if (boardComponent.value?.boardRef) {
-    await exportAsImage(boardComponent.value.boardRef, format, config.value.title || 'bingo-card')
+    const originalCells = [...cells.value]
+    const shuffleCb = async () => {
+      shuffleGrid()
+      await nextTick()
+      await new Promise(r => setTimeout(r, 100))
+    }
+    try {
+      await exportAsImage(
+        boardComponent.value.boardRef, 
+        payload.format, 
+        config.value.title || 'bingo-card', 
+        payload.count, 
+        shuffleCb
+      )
+    } finally {
+      if (payload.count > 1) {
+        cells.value = originalCells
+        await nextTick()
+      }
+    }
   }
 }
 
-async function handleExportPdf() {
+async function handleExportPdf(payload: { count: number }) {
   if (boardComponent.value?.boardRef) {
-    await exportAsPdf(boardComponent.value.boardRef, config.value.title || 'bingo-card')
+    const originalCells = [...cells.value]
+    const shuffleCb = async () => {
+      shuffleGrid()
+      await nextTick()
+      await new Promise(r => setTimeout(r, 100))
+    }
+    try {
+      await exportAsPdf(
+        boardComponent.value.boardRef, 
+        config.value.title || 'bingo-card', 
+        payload.count, 
+        shuffleCb
+      )
+    } finally {
+      if (payload.count > 1) {
+        cells.value = originalCells
+        await nextTick()
+      }
+    }
   }
 }
 
@@ -311,8 +348,8 @@ function handleReorder(newCells: BingoCell[]) {
   }
 
   .main-content {
-    padding: 1rem;
-    padding-top: calc(56px + 1rem);
+    padding: 0.5rem;
+    padding-top: calc(56px + 0.5rem);
   }
 }
 

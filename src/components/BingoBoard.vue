@@ -100,13 +100,15 @@ const themeStyles = computed(() => ({
 
 <style scoped>
 .bingo-card {
-  max-width: 600px;
+  width: 100%;
+  max-width: 800px;
   background: var(--card-bg);
-  padding: 1.5rem;
+  padding: clamp(0.5rem, 3vw, 1.5rem);
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   font-family: var(--font-family);
   color: var(--text-color);
+  margin: 0 auto;
 }
 
 .card-title {
@@ -127,7 +129,7 @@ const themeStyles = computed(() => ({
 .header-row {
   display: grid;
   grid-template-columns: repeat(var(--grid-size), minmax(0, 1fr));
-  gap: 8px;
+  gap: clamp(3px, 1.5vw, 8px);
 }
 
 .header-cell {
@@ -135,13 +137,15 @@ const themeStyles = computed(() => ({
   font-weight: 700;
   font-size: clamp(1rem, 2.5vw, 1.5rem);
   color: var(--primary-color);
-  padding: 0.25rem;
+  padding: 0.25rem 0;
+  min-width: 0;
+  min-height: 0;
 }
 
 .bingo-grid {
   display: grid;
   grid-template-columns: repeat(var(--grid-size), minmax(0, 1fr));
-  gap: 8px;
+  gap: clamp(3px, 1.5vw, 8px);
   width: 100%;
 }
 

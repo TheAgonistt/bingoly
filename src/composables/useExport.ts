@@ -1,5 +1,6 @@
 import { toPng, toJpeg } from 'html-to-image';
 import { jsPDF } from 'jspdf';
+import JSZip from 'jszip';
 import type { ImageFormat } from '@/types/bingo';
 
 function downloadBlob(dataUrl: string, filename: string): void {
@@ -16,6 +17,8 @@ export function useExport() {
     element: HTMLElement,
     format: ImageFormat,
     filename = 'bingo-card',
+    count = 1,
+    shuffleCallback?: () => Promise<void>
   ): Promise<void> {
     const options = {
       pixelRatio: 3,
@@ -23,28 +26,44 @@ export function useExport() {
       backgroundColor: '#ffffff',
     };
 
-    let dataUrl: string;
-    if (format === 'jpeg') {
-      dataUrl = await toJpeg(element, { ...options, quality: 0.95 });
-    } else {
-      dataUrl = await toPng(element, options);
+    if (count <= 1 || !shuffleCallback) {
+      let dataUrl: string;
+      if (format === 'jpeg') {
+        dataUrl = await toJpeg(element, { ...options, quality: 0.95 });
+      } else {
+        dataUrl = await toPng(element, options);
+      }
+      downloadBlob(dataUrl, `${filename}.${format === 'jpeg' ? 'jpg' : 'png'}`);
+      return;
     }
 
-    downloadBlob(dataUrl, `${filename}.${format === 'jpeg' ? 'jpg' : 'png'}`);
+    const zip = new JSZip();
+    for (let i = 0; i < count; i++) {
+      if (i > 0) await shuffleCallback();
+      
+      let dataUrl: string;
+      if (format === 'jpeg') {
+        dataUrl = await toJpeg(element, { ...options, quality: 0.95 });
+      } else {
+        dataUrl = await toPng(element, options);
+      }
+      
+      const base64Data = dataUrl.split(',')[1];
+      zip.file(`${filename}-${i + 1}.${format === 'jpeg' ? 'jpg' : 'png'}`, base64Data!, { base64: true });
+    }
+    
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    downloadBlob(url, `${filename}-bundle.zip`);
+    URL.revokeObjectURL(url);
   }
 
   async function exportAsPdf(
     element: HTMLElement,
     title = 'bingo-card',
+    count = 1,
+    shuffleCallback?: () => Promise<void>
   ): Promise<void> {
-    // Capture as PNG first
-    const dataUrl = await toPng(element, {
-      pixelRatio: 3,
-      cacheBust: true,
-      backgroundColor: '#ffffff',
-    });
-
-    // Create PDF — Letter size (215.9mm × 279.4mm)
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -58,34 +77,42 @@ export function useExport() {
     const availW = pageWidth - margin * 2;
     const availH = pageHeight - margin * 2;
 
-    // Determine image dimensions from the element's aspect ratio
-    const aspectRatio = element.offsetWidth / element.offsetHeight;
-    let imgW: number;
-    let imgH: number;
+    for (let i = 0; i < count; i++) {
+      if (i > 0) {
+        await shuffleCallback?.();
+        pdf.addPage();
+      }
 
-    if (aspectRatio >= 1) {
-      imgW = availW;
-      imgH = availW / aspectRatio;
-      if (imgH > availH) {
-        imgH = availH;
-        imgW = availH * aspectRatio;
+      const dataUrl = await toPng(element, {
+        pixelRatio: 3,
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+      });
+
+      const props = pdf.getImageProperties(dataUrl);
+      const imgRatio = props.width / props.height;
+      const pageRatio = availW / availH;
+
+      let finalW = availW;
+      let finalH = availH;
+
+      if (imgRatio > pageRatio) {
+        finalH = availW / imgRatio;
+      } else {
+        finalW = availH * imgRatio;
       }
-    } else {
-      imgH = availH;
-      imgW = availH * aspectRatio;
-      if (imgW > availW) {
-        imgW = availW;
-        imgH = availW / aspectRatio;
-      }
+
+      const x = margin + (availW - finalW) / 2;
+      const y = margin + (availH - finalH) / 2;
+
+      pdf.addImage(dataUrl, 'PNG', x, y, finalW, finalH);
     }
 
-    // Centre on page
-    const x = (pageWidth - imgW) / 2;
-    const y = (pageHeight - imgH) / 2;
-
-    pdf.addImage(dataUrl, 'PNG', x, y, imgW, imgH);
     pdf.save(`${title}.pdf`);
   }
 
-  return { exportAsImage, exportAsPdf };
+  return {
+    exportAsImage,
+    exportAsPdf,
+  };
 }

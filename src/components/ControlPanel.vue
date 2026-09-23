@@ -24,13 +24,21 @@ const emit = defineEmits<{
   (e: 'clear-all'): void;
   (e: 'toggle-mode'): void;
   (e: 'open-bulk-import'): void;
-  (e: 'export-image', payload: 'png' | 'jpeg'): void;
-  (e: 'export-pdf'): void;
+  (e: 'export-image', payload: { format: 'png' | 'jpeg'; count: number }): void;
+  (e: 'export-pdf', payload: { count: number }): void;
   (e: 'set-grid-size', payload: GridDimension): void;
 }>();
 
 const gridSizes: GridDimension[] = [3, 4, 5, 6, 7];
-const fontOptions = ['system-ui', 'Georgia', '"Courier New"', 'Arial', '"Comic Sans MS"', 'Verdana'];
+const fontOptions = [
+  '"system-ui", "-apple-system", sans-serif',
+  '"Comic Sans MS", "Chalkboard SE", sans-serif',
+  'Georgia, serif',
+  '"Courier New", monospace',
+  'Impact, sans-serif'
+];
+
+const exportCount = ref(1);
 
 const updateConfig = (key: keyof BingoConfig, value: any) => {
   emit('update:config', { [key]: value });
@@ -273,19 +281,33 @@ const setBorderRadiusValue = (val: string) => {
     <!-- 6. Export -->
     <details class="panel-section" name="panel-accordion">
       <summary>Export</summary>
-      <div class="section-content actions-grid">
-        <button class="btn-action btn-export" @click="emit('export-image', 'png')">
-          <ImageIcon :size="16" />
-          PNG
-        </button>
-        <button class="btn-action btn-export" @click="emit('export-image', 'jpeg')">
-          <ImageIcon :size="16" />
-          JPEG
-        </button>
-        <button class="btn-action btn-export" @click="emit('export-pdf')">
-          <FileTextIcon :size="16" />
-          PDF
-        </button>
+      <div class="section-content">
+        <div class="form-group">
+          <label for="exportCount">Quantity (Randomized)</label>
+          <input 
+            type="number" 
+            id="exportCount" 
+            v-model.number="exportCount" 
+            min="1" 
+            max="100" 
+            class="text-input" 
+          />
+          <p class="auto-hint">Exports {{ exportCount }} unique randomized card{{ exportCount > 1 ? 's' : '' }}.</p>
+        </div>
+        <div class="actions-grid">
+          <button class="btn-action btn-export" @click="emit('export-image', { format: 'png', count: exportCount })">
+            <ImageIcon :size="16" />
+            PNG
+          </button>
+          <button class="btn-action btn-export" @click="emit('export-image', { format: 'jpeg', count: exportCount })">
+            <ImageIcon :size="16" />
+            JPEG
+          </button>
+          <button class="btn-action btn-export" @click="emit('export-pdf', { count: exportCount })">
+            <FileTextIcon :size="16" />
+            PDF
+          </button>
+        </div>
       </div>
     </details>
   </aside>

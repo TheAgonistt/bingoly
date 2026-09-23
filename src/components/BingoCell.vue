@@ -199,19 +199,23 @@ const cancelEdit = () => {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   user-select: none;
   cursor: default;
-  padding: 4px;
+  padding: clamp(2px, 1vw, 4px);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  min-width: 0;
+  min-height: 0;
 }
 
 .bingo-cell.play-mode {
   cursor: pointer;
 }
 
-.bingo-cell:not(.play-mode):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  z-index: 2;
+@media (hover: hover) and (pointer: fine) {
+  .bingo-cell:not(.play-mode):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+  }
 }
 
 .cell-image {
@@ -327,14 +331,16 @@ const cancelEdit = () => {
   opacity: 0;
 }
 
-.bingo-cell:not(.play-mode):hover .edit-btn {
-  opacity: 1;
-}
+@media (hover: hover) and (pointer: fine) {
+  .bingo-cell:not(.play-mode):hover .edit-btn {
+    opacity: 1;
+  }
 
-.cell-action:hover {
-  background: #fff;
-  color: #000;
-  transform: scale(1.1);
+  .cell-action:hover {
+    background: #fff;
+    color: #000;
+    transform: scale(1.1);
+  }
 }
 
 /* Mobile: larger touch targets, always visible */

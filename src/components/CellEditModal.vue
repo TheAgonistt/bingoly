@@ -411,10 +411,6 @@ label {
   border-right: 1px solid var(--input-border, #cccccc);
 }
 
-.toggle-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
 .toggle-btn.active {
   background-color: var(--primary-color, #3b82f6);
   color: #ffffff;
@@ -436,10 +432,6 @@ label {
   background-color: var(--input-bg, #ffffff);
   transition: all 0.2s ease;
   user-select: none;
-}
-
-.lock-toggle:hover {
-  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .lock-toggle.locked {
@@ -472,14 +464,24 @@ label {
   color: inherit;
 }
 
-.btn-outline:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
 .btn-primary {
   background-color: var(--primary-color, #3b82f6);
   border: 1px solid var(--primary-color, #3b82f6);
   color: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .toggle-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .lock-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .btn-outline:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
 }
 
 .btn-primary:hover {
