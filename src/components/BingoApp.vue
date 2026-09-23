@@ -35,6 +35,7 @@ const editingCell = ref<BingoCell | null>(null)
 const showCellEdit = ref<boolean>(false)
 const sidebarOpen = ref<boolean>(typeof window !== 'undefined' && window.innerWidth >= 1024)
 const isDark = ref<boolean>(true)
+const exportProgress = ref<{ current: number; total: number } | null>(null)
 
 // Sync dark mode class on <html>
 watchEffect(() => {
@@ -50,24 +51,40 @@ const unlockedCount = computed(() => {
 async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: number }) {
   if (boardComponent.value?.boardRef) {
     const originalCells = [...cells.value]
-    const shuffleCb = async () => {
-      shuffleGrid()
-      await nextTick()
-      await new Promise(r => setTimeout(r, 100))
+    const originalMode = mode.value
+    
+    // Switch to play mode for clean export
+    mode.value = 'play'
+    await nextTick()
+    await new Promise(r => setTimeout(r, 50))
+    
+    const progressCb = async (current: number, total: number) => {
+      exportProgress.value = { current, total }
+      if (current > 1) {
+        shuffleGrid()
+        await nextTick()
+        await new Promise(r => setTimeout(r, 100))
+      } else {
+        await nextTick()
+        await new Promise(r => setTimeout(r, 50))
+      }
     }
+    
     try {
       await exportAsImage(
         boardComponent.value.boardRef, 
         payload.format, 
         config.value.title || 'bingo-card', 
         payload.count, 
-        shuffleCb
+        progressCb
       )
     } finally {
+      exportProgress.value = null
+      mode.value = originalMode
       if (payload.count > 1) {
         cells.value = originalCells
-        await nextTick()
       }
+      await nextTick()
     }
   }
 }
@@ -75,23 +92,39 @@ async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: numbe
 async function handleExportPdf(payload: { count: number }) {
   if (boardComponent.value?.boardRef) {
     const originalCells = [...cells.value]
-    const shuffleCb = async () => {
-      shuffleGrid()
-      await nextTick()
-      await new Promise(r => setTimeout(r, 100))
+    const originalMode = mode.value
+    
+    // Switch to play mode for clean export
+    mode.value = 'play'
+    await nextTick()
+    await new Promise(r => setTimeout(r, 50))
+    
+    const progressCb = async (current: number, total: number) => {
+      exportProgress.value = { current, total }
+      if (current > 1) {
+        shuffleGrid()
+        await nextTick()
+        await new Promise(r => setTimeout(r, 100))
+      } else {
+        await nextTick()
+        await new Promise(r => setTimeout(r, 50))
+      }
     }
+    
     try {
       await exportAsPdf(
         boardComponent.value.boardRef, 
         config.value.title || 'bingo-card', 
         payload.count, 
-        shuffleCb
+        progressCb
       )
     } finally {
+      exportProgress.value = null
+      mode.value = originalMode
       if (payload.count > 1) {
         cells.value = originalCells
-        await nextTick()
       }
+      await nextTick()
     }
   }
 }
@@ -212,10 +245,77 @@ function handleReorder(newCells: BingoCell[]) {
       @close="showCellEdit = false" 
       @save="handleSaveCell" 
     />
+
+    <!-- Export Progress Overlay -->
+    <div class="export-overlay no-print" v-if="exportProgress">
+      <div class="export-progress-card">
+        <div class="spinner"></div>
+        <h3>Generating Cards</h3>
+        <p>Exporting {{ exportProgress.current }} / {{ exportProgress.total }}</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.export-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.export-progress-card {
+  background: var(--card-bg, #ffffff);
+  color: var(--text-color, #333);
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-width: 280px;
+}
+
+html.dark .export-progress-card {
+  background: #1e2030;
+  color: #e2e8f0;
+}
+
+.export-progress-card h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.export-progress-card p {
+  margin: 0;
+  color: var(--primary-color, #6c5ce7);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(108, 92, 231, 0.2);
+  border-left-color: var(--primary-color, #6c5ce7);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .app-layout {
   display: grid;
   grid-template-columns: var(--sidebar-width, 340px) 1fr;

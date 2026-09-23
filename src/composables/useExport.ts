@@ -18,15 +18,22 @@ export function useExport() {
     format: ImageFormat,
     filename = 'bingo-card',
     count = 1,
-    shuffleCallback?: () => Promise<void>
+    progressCallback?: (current: number, total: number) => Promise<void>
   ): Promise<void> {
     const options = {
       pixelRatio: 3,
       cacheBust: true,
       backgroundColor: '#ffffff',
+      width: element.offsetWidth,
+      height: element.offsetHeight,
+      style: {
+        margin: '0',
+        transform: 'none',
+      },
     };
 
-    if (count <= 1 || !shuffleCallback) {
+    if (count <= 1 || !progressCallback) {
+      if (progressCallback) await progressCallback(1, 1);
       let dataUrl: string;
       if (format === 'jpeg') {
         dataUrl = await toJpeg(element, { ...options, quality: 0.95 });
@@ -39,7 +46,7 @@ export function useExport() {
 
     const zip = new JSZip();
     for (let i = 0; i < count; i++) {
-      if (i > 0) await shuffleCallback();
+      await progressCallback(i + 1, count);
       
       let dataUrl: string;
       if (format === 'jpeg') {
@@ -62,7 +69,7 @@ export function useExport() {
     element: HTMLElement,
     title = 'bingo-card',
     count = 1,
-    shuffleCallback?: () => Promise<void>
+    progressCallback?: (current: number, total: number) => Promise<void>
   ): Promise<void> {
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -78,8 +85,8 @@ export function useExport() {
     const availH = pageHeight - margin * 2;
 
     for (let i = 0; i < count; i++) {
+      await progressCallback?.(i + 1, count);
       if (i > 0) {
-        await shuffleCallback?.();
         pdf.addPage();
       }
 
@@ -87,6 +94,12 @@ export function useExport() {
         pixelRatio: 3,
         cacheBust: true,
         backgroundColor: '#ffffff',
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        style: {
+          margin: '0',
+          transform: 'none',
+        },
       });
 
       const props = pdf.getImageProperties(dataUrl);
