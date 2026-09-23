@@ -102,3 +102,185 @@ dialog::backdrop {
     display: block !important;
   }
 }
+
+/* ===== Dark Mode ===== */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0f1117;
+  color: #e2e8f0;
+}
+
+html.dark dialog {
+  background-color: #1e2030;
+  color: #e2e8f0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+html.dark dialog::backdrop {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* Dark mode app surfaces */
+html.dark .sidebar,
+html.dark .mobile-header {
+  background: #181a24;
+  border-color: #2a2d3a;
+}
+
+html.dark .sidebar-header {
+  border-color: #2a2d3a;
+}
+
+html.dark .panel-section {
+  background: #1e2030;
+  border-color: #2a2d3a;
+}
+
+html.dark .panel-section summary {
+  background-color: #252838;
+  color: #c8cdd8;
+}
+
+html.dark .main-content {
+  background: #0f1117;
+}
+
+/* Dark mode inputs */
+html.dark input[type="text"],
+html.dark textarea,
+html.dark select {
+  background-color: #252838;
+  border-color: #3a3d4a;
+  color: #e2e8f0;
+}
+
+html.dark input[type="text"]:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  border-color: var(--primary-color, #6c5ce7);
+}
+
+html.dark input[type="text"]:disabled,
+html.dark select:disabled {
+  background: #1a1c28;
+  color: #555a6e;
+}
+
+/* Dark mode buttons */
+html.dark .btn-action,
+html.dark .btn-grid-size {
+  background: #252838;
+  border-color: #3a3d4a;
+  color: #c8cdd8;
+}
+
+html.dark .btn-action:hover:not(:disabled),
+html.dark .btn-grid-size:hover:not(:disabled) {
+  background: #2e3142;
+}
+
+html.dark .btn-mode {
+  background-color: #252838;
+  border-color: #3a3d4a;
+  color: #8b9cf7;
+}
+
+html.dark .btn-cancel,
+html.dark .btn-outline {
+  border-color: #3a3d4a;
+  color: #c8cdd8;
+}
+
+html.dark .btn-cancel:hover,
+html.dark .btn-outline:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Dark mode form labels */
+html.dark .form-group label,
+html.dark .form-group-inline label,
+html.dark .color-group label {
+  color: #8b90a0;
+}
+
+/* Dark mode cell edit modal */
+html.dark .dialog-header,
+html.dark .dialog-footer {
+  border-color: #2a2d3a;
+}
+
+html.dark .lock-toggle {
+  background-color: #252838;
+  border-color: #3a3d4a;
+}
+
+html.dark .lock-toggle:hover {
+  background-color: #2e3142;
+}
+
+html.dark .toggle-btn {
+  color: #c8cdd8;
+}
+
+html.dark .toggle-btn:not(:last-child) {
+  border-color: #3a3d4a;
+}
+
+html.dark .toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+html.dark .upload-btn {
+  background-color: #252838;
+  border-color: #3a3d4a;
+}
+
+html.dark .upload-btn:hover {
+  background-color: #2e3142;
+}
+
+html.dark .image-preview-container {
+  background-color: #1a1c28;
+  border-color: #3a3d4a;
+}
+
+/* Dark mode cell action buttons */
+html.dark .cell-action {
+  background: rgba(30, 32, 48, 0.92);
+  border-color: #3a3d4a;
+  color: #aab0c0;
+}
+
+html.dark .cell-action:hover {
+  background: #2e3142;
+  color: #e2e8f0;
+}
+
+/* Dark mode stats + hints */
+html.dark .instructions,
+html.dark .auto-hint {
+  color: #6b7085;
+}
+
+html.dark .stats-indicator {
+  color: #8b90a0;
+}
+
+/* Dark mode control panel background */
+html.dark .control-panel {
+  background-color: #181a24;
+}
+
+/* Dark mode dark toggle */
+html.dark .dark-toggle {
+  background: #252838;
+  border-color: #3a3d4a;
+  color: #c8cdd8;
+}
+
+html.dark .dark-toggle:hover {
+  background: #2e3142;
+}

@@ -15,6 +15,8 @@ export interface BingoCell {
   isLocked: boolean;
   /** Whether this cell is the centre free-space. */
   isFreeSpace: boolean;
+  /** Per-cell font size in px. null = auto-fit based on text length. */
+  fontSize: number | null;
   /** Dauber mark state in play mode. */
   marked: boolean;
 }

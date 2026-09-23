@@ -19,6 +19,7 @@ const localText = ref<string>('');
 const localImageUrl = ref<string | null>(null);
 const localImageFit = ref<'contain' | 'cover'>('contain');
 const localLocked = ref<boolean>(false);
+const localFontSize = ref<number | null>(null);
 
 // Sync local state when cell or open changes
 watch(() => props.open, (isOpen) => {
@@ -28,6 +29,7 @@ watch(() => props.open, (isOpen) => {
       localImageUrl.value = props.cell.imageUrl;
       localImageFit.value = props.cell.imageFit;
       localLocked.value = props.cell.isLocked;
+      localFontSize.value = props.cell.fontSize;
     }
     dialogRef.value?.showModal();
   } else {
@@ -89,6 +91,7 @@ const handleSave = () => {
       imageUrl: localImageUrl.value,
       imageFit: localImageFit.value,
       isLocked: localLocked.value,
+      fontSize: localFontSize.value,
     }
   });
 };
@@ -171,6 +174,33 @@ const handleClose = () => {
             >
               Cover
             </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Font Size</label>
+          <div class="font-size-control">
+            <label class="auto-toggle">
+              <input
+                type="checkbox"
+                :checked="localFontSize === null"
+                @change="localFontSize = ($event.target as HTMLInputElement).checked ? null : 14"
+              />
+              <span>Auto-fit</span>
+            </label>
+            <div v-if="localFontSize !== null" class="slider-row">
+              <input
+                type="range"
+                min="7"
+                max="28"
+                step="1"
+                :value="localFontSize"
+                @input="localFontSize = Number(($event.target as HTMLInputElement).value)"
+                class="font-slider"
+              />
+              <span class="font-size-value">{{ localFontSize }}px</span>
+            </div>
+            <p v-else class="auto-hint">Text size adjusts automatically based on content length.</p>
           </div>
         </div>
 
@@ -454,5 +484,57 @@ label {
 
 .btn-primary:hover {
   filter: brightness(1.1);
+}
+
+.font-size-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.auto-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-color, #333);
+}
+
+.auto-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-color, #3b82f6);
+  cursor: pointer;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.font-slider {
+  flex: 1;
+  height: 6px;
+  accent-color: var(--primary-color, #3b82f6);
+  cursor: pointer;
+}
+
+.font-size-value {
+  min-width: 40px;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-color, #3b82f6);
+  font-variant-numeric: tabular-nums;
+}
+
+.auto-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--label-color, #888);
+  font-style: italic;
 }
 </style>

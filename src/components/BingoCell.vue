@@ -7,9 +7,10 @@
       'marked': cell.marked,
       'play-mode': mode === 'play'
     }"
-    :style="{ '--grid-size': gridSize }"
+    :style="cellStyles"
     @click="handleClick"
     @dblclick="handleDoubleClick"
+    @touchend.passive="handleTouchEnd"
   >
     <!-- Background Icon for Free Space -->
     <div v-if="cell.isFreeSpace" class="free-space-bg">
@@ -44,25 +45,27 @@
       {{ cell.text }}
     </div>
 
-    <!-- Design mode controls -->
+    <!-- Design mode controls — always visible on mobile -->
     <template v-if="mode === 'design'">
       <!-- Lock badge -->
       <button
-        class="lock-badge"
+        class="cell-action lock-badge"
         title="Toggle lock position"
         @click.stop="emit('toggle-lock', cell.id)"
+        @touchend.stop.prevent="emit('toggle-lock', cell.id)"
       >
-        <Lock v-if="cell.isLocked" :size="12" />
-        <Unlock v-else :size="12" />
+        <Lock v-if="cell.isLocked" :size="14" />
+        <Unlock v-else :size="14" />
       </button>
 
       <!-- Edit button -->
       <button
-        class="edit-btn"
+        class="cell-action edit-btn"
         title="Edit cell details"
         @click.stop="emit('edit-cell', cell.id)"
+        @touchend.stop.prevent="emit('edit-cell', cell.id)"
       >
-        <Pencil :size="12" />
+        <Pencil :size="14" />
       </button>
     </template>
 
@@ -72,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import { Lock, Unlock, Pencil, Star } from '@lucide/vue';
 import type { BingoCell, AppMode, GridDimension, CellUpdate } from '@/types/bingo';
 
@@ -93,19 +96,74 @@ const isEditing = ref(false);
 const editText = ref('');
 const editInput = ref<HTMLTextAreaElement | null>(null);
 
+/**
+ * Auto-fit font size: computes an ideal px size based on text length and grid dimensions.
+ * Short text → large font. Long text → progressively smaller.
+ */
+const autoFontSize = computed((): number => {
+  const text = props.cell.text;
+  const len = text.length;
+  const grid = props.gridSize;
+
+  // Base size scales inversely with grid size (more cells = smaller base)
+  const baseSize = 22 - grid * 1.6;
+
+  if (len === 0) return baseSize;
+  if (len <= 5) return baseSize;
+  if (len <= 10) return baseSize * 0.9;
+  if (len <= 20) return baseSize * 0.78;
+  if (len <= 35) return baseSize * 0.65;
+  if (len <= 55) return baseSize * 0.55;
+  if (len <= 80) return baseSize * 0.48;
+  return baseSize * 0.4;
+});
+
+const effectiveFontSize = computed((): number => {
+  return props.cell.fontSize ?? autoFontSize.value;
+});
+
+const cellStyles = computed(() => ({
+  '--grid-size': props.gridSize,
+  '--cell-font-size': `${Math.max(7, effectiveFontSize.value)}px`,
+}));
+
+/* ---- Touch double-tap detection ---- */
+let lastTapTime = 0;
+const DOUBLE_TAP_DELAY = 350; // ms
+
+const handleTouchEnd = () => {
+  const now = Date.now();
+  const timeSince = now - lastTapTime;
+  lastTapTime = now;
+
+  if (timeSince < DOUBLE_TAP_DELAY && timeSince > 0) {
+    // Double-tap detected
+    if (props.mode === 'design') {
+      startEditing();
+    }
+  }
+};
+
+/* ---- Click / double-click (desktop) ---- */
+
 const handleClick = () => {
   if (props.mode === 'play') {
     emit('toggle-mark', props.cell.id);
   }
 };
 
-const handleDoubleClick = async () => {
+const handleDoubleClick = () => {
   if (props.mode !== 'design') return;
+  startEditing();
+};
+
+/* ---- Editing ---- */
+
+const startEditing = async () => {
   editText.value = props.cell.text;
   isEditing.value = true;
   await nextTick();
   editInput.value?.focus();
-  // Set cursor to end
   const length = editInput.value?.value.length || 0;
   editInput.value?.setSelectionRange(length, length);
 };
@@ -130,19 +188,20 @@ const cancelEdit = () => {
 .bingo-cell {
   position: relative;
   aspect-ratio: 1 / 1;
-  background-color: var(--cell-bg, var(--cellBackground, #ffffff));
-  border: 1px solid var(--cell-border, var(--cellBorderColor, #ccc));
+  background-color: var(--cell-bg, #ffffff);
+  border: 1px solid var(--cell-border, #ccc);
   border-radius: var(--border-radius, 8px);
-  color: var(--textColor, inherit);
-  font-size: clamp(0.65rem, calc(1.2rem - var(--grid-size) * 0.06rem), 1.1rem);
+  color: var(--text-color, inherit);
   overflow: hidden;
-  word-break: break-word;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   user-select: none;
   cursor: default;
+  padding: 4px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .bingo-cell.play-mode {
@@ -153,10 +212,6 @@ const cancelEdit = () => {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 2;
-}
-
-.bingo-cell:not(.play-mode):hover .edit-btn {
-  opacity: 1;
 }
 
 .cell-image {
@@ -173,16 +228,22 @@ const cancelEdit = () => {
   position: relative;
   z-index: 2;
   text-align: center;
-  padding: 8px;
   width: 100%;
+  font-size: var(--cell-font-size, 14px);
+  line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  line-clamp: 4;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  overflow: hidden;
+  padding: 2px;
 }
 
 .large-star {
-  font-size: 2.5em;
+  font-size: 2.5em !important;
   line-height: 1;
 }
 
@@ -204,7 +265,7 @@ const cancelEdit = () => {
 .star-icon {
   width: 60%;
   height: 60%;
-  color: var(--textColor, currentColor);
+  color: var(--text-color, currentColor);
 }
 
 .edit-overlay {
@@ -214,7 +275,7 @@ const cancelEdit = () => {
   right: 0;
   bottom: 0;
   z-index: 10;
-  background: var(--cellBackground, #ffffff);
+  background: var(--cell-bg, #ffffff);
 }
 
 .inline-input {
@@ -222,29 +283,24 @@ const cancelEdit = () => {
   height: 100%;
   border: none;
   background: transparent;
-  color: var(--textColor, inherit);
+  color: var(--text-color, inherit);
   text-align: center;
-  font-size: inherit;
+  font-size: var(--cell-font-size, 14px);
   font-family: inherit;
-  outline: 2px solid var(--primaryColor, #3b82f6);
+  outline: 2px solid var(--primary-color, #3b82f6);
   outline-offset: -2px;
-  padding: 8px;
+  padding: 4px;
   resize: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  line-height: 1.2;
 }
 
-.lock-badge {
+/* ---- Action buttons (lock + edit) ---- */
+.cell-action {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 20px;
-  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid #ddd;
   border-radius: 4px;
   cursor: pointer;
@@ -252,42 +308,54 @@ const cancelEdit = () => {
   padding: 0;
   color: #555;
   transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.lock-badge:hover {
-  background: #fff;
-  color: #000;
-  transform: scale(1.1);
+/* Desktop: small buttons, edit hidden until hover */
+.lock-badge {
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
 }
 
 .edit-btn {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
+  bottom: 3px;
+  right: 3px;
   width: 20px;
   height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  z-index: 5;
-  padding: 0;
-  color: #555;
   opacity: 0;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.edit-btn:hover {
+.bingo-cell:not(.play-mode):hover .edit-btn {
+  opacity: 1;
+}
+
+.cell-action:hover {
   background: #fff;
   color: #000;
   transform: scale(1.1);
 }
 
+/* Mobile: larger touch targets, always visible */
+@media (pointer: coarse) {
+  .lock-badge {
+    width: 28px;
+    height: 28px;
+    top: 2px;
+    right: 2px;
+  }
+
+  .edit-btn {
+    width: 28px;
+    height: 28px;
+    bottom: 2px;
+    right: 2px;
+    opacity: 1; /* Always visible on touch devices */
+  }
+}
+
+/* ---- Dauber mark ---- */
 .dauber-mark {
   position: absolute;
   top: 15%;
@@ -295,7 +363,7 @@ const cancelEdit = () => {
   right: 15%;
   bottom: 15%;
   border-radius: 50%;
-  background-color: var(--primaryColor, rgba(239, 68, 68, 0.6));
+  background-color: var(--primary-color, rgba(239, 68, 68, 0.6));
   opacity: 0.6;
   z-index: 10;
   pointer-events: none;

@@ -77,6 +77,9 @@ const themeStyles = computed(() => ({
       ghostClass="ghost" 
       :disabled="mode === 'play'" 
       filter=".locked"
+      :delay="200"
+      :delayOnTouchOnly="true"
+      :touchStartThreshold="5"
       class="bingo-grid"
       :style="{ '--grid-size': config.gridSize }"
     >

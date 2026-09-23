@@ -26,6 +26,7 @@ function createCell(overrides: Partial<BingoCell> = {}): BingoCell {
     imageFit: 'cover',
     isLocked: false,
     isFreeSpace: false,
+    fontSize: null,
     marked: false,
     ...overrides,
   };

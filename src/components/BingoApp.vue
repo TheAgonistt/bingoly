@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Menu, X } from '@lucide/vue'
+import { ref, computed, onMounted, watchEffect } from 'vue'
+import { Menu, X, Moon, Sun } from '@lucide/vue'
 import BingoBoard from './BingoBoard.vue'
 import ControlPanel from './ControlPanel.vue'
 import BulkImportModal from './BulkImportModal.vue'
@@ -33,7 +33,13 @@ const boardComponent = ref<InstanceType<typeof BingoBoard> & { boardRef?: HTMLEl
 const showBulkImport = ref<boolean>(false)
 const editingCell = ref<BingoCell | null>(null)
 const showCellEdit = ref<boolean>(false)
-const sidebarOpen = ref<boolean>(true) // for mobile toggle
+const sidebarOpen = ref<boolean>(typeof window !== 'undefined' && window.innerWidth >= 1024)
+const isDark = ref<boolean>(true)
+
+// Sync dark mode class on <html>
+watchEffect(() => {
+  document.documentElement.classList.toggle('dark', isDark.value)
+})
 
 // Computed
 const unlockedCount = computed(() => {
@@ -107,12 +113,20 @@ function handleReorder(newCells: BingoCell[]) {
         <X v-else />
       </button>
       <h1>Bingo Card Generator</h1>
+      <button class="dark-toggle" @click="isDark = !isDark" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+        <Sun v-if="isDark" :size="18" />
+        <Moon v-else :size="18" />
+      </button>
     </header>
     
     <!-- Sidebar -->
     <aside class="sidebar no-print" :class="{ open: sidebarOpen }">
       <div class="sidebar-header">
         <h2>Bingo Card Generator</h2>
+        <button class="dark-toggle" @click="isDark = !isDark" :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'">
+          <Sun v-if="isDark" :size="18" />
+          <Moon v-else :size="18" />
+        </button>
       </div>
       <ControlPanel 
         :config="config" 
@@ -190,6 +204,7 @@ function handleReorder(newCells: BingoCell[]) {
   border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 
 .sidebar-header h2 {
@@ -197,6 +212,26 @@ function handleReorder(newCells: BingoCell[]) {
   font-weight: 700;
   color: var(--primary-color, #6c5ce7);
   margin: 0;
+}
+
+.dark-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.dark-toggle:hover {
+  background: #e2e8f0;
+  color: #1a1a2e;
 }
 
 .sidebar-overlay {
@@ -238,6 +273,7 @@ function handleReorder(newCells: BingoCell[]) {
     font-weight: 600;
     margin-top: 0;
     margin-bottom: 0;
+    flex: 1;
   }
 
   .menu-toggle {
