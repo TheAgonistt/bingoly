@@ -119,12 +119,37 @@ const setBorderRadiusValue = (val: string) => {
         </div>
         
         <div class="form-group">
-          <label for="subtitleInput">Subtitle</label>
-          <input 
+          <label for="subtitleInput">Paragraph (below title)</label>
+          <textarea
             id="subtitleInput"
-            type="text" 
-            :value="config.subtitle" 
-            @input="updateConfig('subtitle', ($event.target as HTMLInputElement).value)"
+            class="subtitle-textarea"
+            :value="config.subtitle"
+            @input="updateConfig('subtitle', ($event.target as HTMLTextAreaElement).value)"
+            :disabled="mode === 'play'"
+            placeholder="Optional paragraph text&#10;Supports multiple lines..."
+            rows="3"
+          />
+        </div>
+
+        <div v-if="config.subtitle" class="form-group">
+          <label>Paragraph Font Size: {{ config.subtitleFontSize }}px</label>
+          <input
+            type="range"
+            min="10"
+            max="32"
+            step="1"
+            :value="config.subtitleFontSize"
+            @input="updateConfig('subtitleFontSize', Number(($event.target as HTMLInputElement).value))"
+            :disabled="mode === 'play'"
+          />
+        </div>
+
+        <div v-if="config.subtitle" class="form-group-inline">
+          <label>Paragraph Color</label>
+          <input
+            type="color"
+            :value="config.subtitleColor"
+            @input="updateConfig('subtitleColor', ($event.target as HTMLInputElement).value)"
             :disabled="mode === 'play'"
           />
         </div>
@@ -171,6 +196,17 @@ const setBorderRadiusValue = (val: string) => {
             type="text" 
             :value="config.freeSpaceText" 
             @input="updateConfig('freeSpaceText', ($event.target as HTMLInputElement).value)"
+            :disabled="mode === 'play'"
+          />
+        </div>
+
+        <div class="form-group-inline">
+          <label for="wordBreakCheck">Word Break (cells)</label>
+          <input 
+            id="wordBreakCheck"
+            type="checkbox" 
+            :checked="config.wordBreak !== false"
+            @change="updateConfig('wordBreak', ($event.target as HTMLInputElement).checked)"
             :disabled="mode === 'play'"
           />
         </div>

@@ -28,6 +28,7 @@ function createCell(overrides: Partial<BingoCell> = {}): BingoCell {
     isFreeSpace: false,
     fontSize: null,
     marked: false,
+    wordBreak: true,
     ...overrides,
   };
 }
@@ -48,11 +49,14 @@ function defaultConfig(): BingoConfig {
   return {
     title: 'BINGO',
     subtitle: '',
+    subtitleFontSize: 14,
+    subtitleColor: '#475569',
     gridSize: 5,
     hasHeader: true,
     headerLetters: defaultHeaderLetters(5),
     showFreeSpace: true,
     freeSpaceText: '★',
+    wordBreak: true,
     theme: {
       primaryColor: '#6c5ce7',
       cardBackground: '#ffffff',
@@ -97,8 +101,9 @@ function loadState(): PersistedState | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedState;
-    // Basic sanity check
     if (!parsed.cells || !parsed.config) return null;
+    // Merge defaults for any fields added after initial save (backwards compat)
+    parsed.config = { ...defaultConfig(), ...parsed.config };
     return parsed;
   } catch {
     return null;

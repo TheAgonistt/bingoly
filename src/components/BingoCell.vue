@@ -5,7 +5,8 @@
       'locked': cell.isLocked,
       'free-space': cell.isFreeSpace,
       'marked': cell.marked,
-      'play-mode': mode === 'play'
+      'play-mode': mode === 'play',
+      'no-word-break': !isWordBreak
     }"
     :style="cellStyles"
     @click="handleClick"
@@ -35,7 +36,10 @@
     <div
       v-else
       class="cell-text"
-      :class="{ 'large-star': cell.isFreeSpace && cell.text === '★' }"
+      :class="{ 
+        'large-star': cell.isFreeSpace && cell.text === '★',
+        'no-word-break': !isWordBreak
+      }"
     >
       {{ cell.text }}
     </div>
@@ -74,11 +78,21 @@ import { ref, computed, nextTick } from 'vue';
 import { Lock, Unlock, Pencil } from '@lucide/vue';
 import type { BingoCell, AppMode, GridDimension, CellUpdate } from '@/types/bingo';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   cell: BingoCell;
   mode: AppMode;
   gridSize: GridDimension;
-}>();
+  defaultWordBreak?: boolean;
+}>(), {
+  defaultWordBreak: true,
+});
+
+const isWordBreak = computed(() => {
+  if (props.cell.wordBreak !== undefined && props.cell.wordBreak !== null) {
+    return props.cell.wordBreak;
+  }
+  return props.defaultWordBreak ?? true;
+});
 
 const emit = defineEmits<{
   (e: 'update:cell', payload: { id: string; updates: CellUpdate }): void;
@@ -219,8 +233,13 @@ const cancelEdit = () => {
   left: 0;
   width: 100%;
   height: 100%;
+  border-radius: inherit;
   z-index: 1;
   pointer-events: none;
+}
+
+.bingo-cell.no-word-break {
+  overflow: visible;
 }
 
 .cell-text {
@@ -239,6 +258,15 @@ const cancelEdit = () => {
   line-clamp: 6;
   overflow: hidden;
   padding: 2px;
+}
+
+.cell-text.no-word-break {
+  word-break: keep-all;
+  overflow-wrap: normal;
+  hyphens: none;
+  display: block;
+  overflow: visible;
+  white-space: pre-wrap;
 }
 
 .large-star {

@@ -19,6 +19,8 @@ export interface BingoCell {
   fontSize: number | null;
   /** Dauber mark state in play mode. */
   marked: boolean;
+  /** Whether words can break mid-word. Default: true. */
+  wordBreak?: boolean;
 }
 
 /** Runtime theme applied via CSS custom properties. */
@@ -36,12 +38,16 @@ export interface CardTheme {
 export interface BingoConfig {
   title: string;
   subtitle: string;
+  subtitleFontSize: number;   // px
+  subtitleColor: string;      // CSS colour string
   gridSize: GridDimension;
   hasHeader: boolean;
   headerLetters: string[];
   theme: CardTheme;
   freeSpaceText: string;
   showFreeSpace: boolean;
+  /** Default word-break behavior for cells. Default: true. */
+  wordBreak?: boolean;
 }
 
 /** The two application modes. */

@@ -74,4 +74,26 @@ describe('useBingoGrid', () => {
     grid.toggleLock(firstCell.id)
     expect(grid.cells.value[0].isLocked).toBe(false)
   })
+
+  it('initializes with wordBreak true and supports toggling wordBreak per cell', () => {
+    expect(grid.config.value.wordBreak).toBe(true)
+    const firstCell = grid.cells.value[0]
+    expect(firstCell.wordBreak).toBe(true)
+
+    grid.updateCell(firstCell.id, { wordBreak: false })
+    expect(grid.cells.value[0].wordBreak).toBe(false)
+  })
+
+  it('supports subtitle with custom font size and color', () => {
+    expect(grid.config.value.subtitleFontSize).toBe(14)
+    expect(grid.config.value.subtitleColor).toBe('#475569')
+
+    grid.config.value.subtitle = 'First line\nSecond line'
+    grid.config.value.subtitleFontSize = 18
+    grid.config.value.subtitleColor = '#e11d48'
+
+    expect(grid.config.value.subtitle).toContain('\n')
+    expect(grid.config.value.subtitleFontSize).toBe(18)
+    expect(grid.config.value.subtitleColor).toBe('#e11d48')
+  })
 })

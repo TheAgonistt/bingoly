@@ -61,7 +61,15 @@ const themeStyles = computed(() => ({
   <div ref="boardRef" class="bingo-card" :style="themeStyles">
     <!-- Title -->
     <h1 v-if="config.title" class="card-title">{{ config.title }}</h1>
-    <p v-if="config.subtitle" class="card-subtitle">{{ config.subtitle }}</p>
+    <p 
+      v-if="config.subtitle" 
+      class="card-subtitle"
+      :style="{
+        fontSize: config.subtitleFontSize + 'px',
+        color: config.subtitleColor,
+        whiteSpace: 'pre-line',
+      }"
+    >{{ config.subtitle }}</p>
     
     <!-- Header row -->
     <div v-if="config.hasHeader" class="header-row" :style="{ '--grid-size': config.gridSize }">
@@ -89,6 +97,7 @@ const themeStyles = computed(() => ({
         :cell="cell" 
         :mode="mode" 
         :grid-size="config.gridSize" 
+        :default-word-break="config.wordBreak"
         @update:cell="(payload: { id: string; updates: CellUpdate }) => emit('update:cell', payload)"
         @toggle-lock="(id: string) => emit('toggle-lock', id)"
         @toggle-mark="(id: string) => emit('toggle-mark', id)"

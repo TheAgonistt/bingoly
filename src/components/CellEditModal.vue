@@ -20,6 +20,7 @@ const localImageUrl = ref<string | null>(null);
 const localImageFit = ref<'contain' | 'cover'>('contain');
 const localLocked = ref<boolean>(false);
 const localFontSize = ref<number | null>(null);
+const localWordBreak = ref<boolean>(true);
 
 // Sync local state when cell or open changes
 watch(() => props.open, (isOpen) => {
@@ -30,6 +31,7 @@ watch(() => props.open, (isOpen) => {
       localImageFit.value = props.cell.imageFit;
       localLocked.value = props.cell.isLocked;
       localFontSize.value = props.cell.fontSize;
+      localWordBreak.value = props.cell.wordBreak !== false;
     }
     dialogRef.value?.showModal();
   } else {
@@ -92,6 +94,7 @@ const handleSave = () => {
       imageFit: localImageFit.value,
       isLocked: localLocked.value,
       fontSize: localFontSize.value,
+      wordBreak: localWordBreak.value,
     }
   });
 };
@@ -202,6 +205,34 @@ const handleClose = () => {
             </div>
             <p v-else class="auto-hint">Text size adjusts automatically based on content length.</p>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label>Word Break</label>
+          <div class="toggle-group">
+            <button
+              type="button"
+              class="toggle-btn"
+              :class="{ active: localWordBreak }"
+              @click="localWordBreak = true"
+            >
+              Break (wrap)
+            </button>
+            <button
+              type="button"
+              class="toggle-btn"
+              :class="{ active: !localWordBreak }"
+              @click="localWordBreak = false"
+            >
+              No Break (keep whole)
+            </button>
+          </div>
+          <p v-if="!localWordBreak" class="auto-hint">
+            Words won't split mid-word (text stays together, may overflow cell).
+          </p>
+          <p v-else class="auto-hint">
+            Long words break across lines to fit inside the cell.
+          </p>
         </div>
 
         <div class="form-group">
