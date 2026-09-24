@@ -36,6 +36,7 @@ const showCellEdit = ref<boolean>(false)
 const sidebarOpen = ref<boolean>(typeof window !== 'undefined' && window.innerWidth >= 1024)
 const isDark = ref<boolean>(true)
 const exportProgress = ref<{ current: number; total: number } | null>(null)
+const zoomLevel = ref<number>(100)
 
 // Sync dark mode class on <html>
 watchEffect(() => {
@@ -219,17 +220,35 @@ function handleReorder(newCells: BingoCell[]) {
     
     <!-- Main content -->
     <main class="main-content">
-      <BingoBoard 
-        ref="boardComponent" 
-        :cells="cells" 
-        :config="config" 
-        :mode="mode" 
-        @update:cell="handleCellUpdate"
-        @edit-cell="handleEditCell"
-        @toggle-lock="toggleLock"
-        @toggle-mark="toggleMark"
-        @reorder="handleReorder"
-      />
+      <div class="board-zoom-wrapper" :style="{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }">
+        <BingoBoard 
+          ref="boardComponent" 
+          :cells="cells" 
+          :config="config" 
+          :mode="mode" 
+          @update:cell="handleCellUpdate"
+          @edit-cell="handleEditCell"
+          @toggle-lock="toggleLock"
+          @toggle-mark="toggleMark"
+          @reorder="handleReorder"
+        />
+      </div>
+
+      <!-- Zoom toolbar (Word-style, pinned to bottom) -->
+      <div class="zoom-toolbar no-print">
+        <button class="zoom-btn" @click="zoomLevel = Math.max(50, zoomLevel - 10)" aria-label="Zoom out">−</button>
+        <input
+          type="range"
+          class="zoom-slider"
+          min="50"
+          max="200"
+          step="5"
+          v-model.number="zoomLevel"
+          aria-label="Zoom level"
+        />
+        <button class="zoom-btn" @click="zoomLevel = Math.min(200, zoomLevel + 10)" aria-label="Zoom in">+</button>
+        <button class="zoom-reset" @click="zoomLevel = 100" :class="{ active: zoomLevel !== 100 }">{{ zoomLevel }}%</button>
+      </div>
     </main>
     
     <!-- Modals -->
@@ -377,12 +396,92 @@ html.dark .export-progress-card {
 
 .main-content {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 2rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2rem 2rem 80px; /* bottom pad for zoom bar */
   min-height: 100dvh;
   background: #f0f2f5;
   overflow-x: hidden;
+  position: relative;
+}
+
+.board-zoom-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  /* transform is applied inline; transform-origin keeps it top-centered */
+}
+
+/* ---- Zoom Toolbar ---- */
+.zoom-toolbar {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: var(--sidebar-width, 340px); /* align with main column */
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+  background: var(--zoom-bar-bg, #f0f2f5);
+  border-top: 1px solid var(--zoom-bar-border, #e2e8f0);
+  z-index: 50;
+}
+
+.zoom-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--zoom-bar-border, #cbd5e1);
+  background: var(--zoom-btn-bg, white);
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .zoom-btn:hover {
+    background: var(--zoom-btn-hover, #e2e8f0);
+  }
+}
+
+.zoom-slider {
+  width: 120px;
+  cursor: pointer;
+  accent-color: var(--primary-color, #6c5ce7);
+}
+
+.zoom-reset {
+  min-width: 52px;
+  height: 28px;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--zoom-bar-border, #cbd5e1);
+  background: var(--zoom-btn-bg, white);
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.zoom-reset.active {
+  border-color: var(--primary-color, #6c5ce7);
+  color: var(--primary-color, #6c5ce7);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .zoom-reset:hover {
+    background: var(--zoom-btn-hover, #e2e8f0);
+  }
 }
 
 @media (max-width: 1023px) {
@@ -450,6 +549,11 @@ html.dark .export-progress-card {
   .main-content {
     padding: 0.5rem;
     padding-top: calc(56px + 0.5rem);
+    padding-bottom: 72px; /* space for zoom bar */
+  }
+
+  .zoom-toolbar {
+    left: 0; /* full width on mobile, no sidebar */
   }
 }
 
@@ -464,5 +568,13 @@ html.dark .export-progress-card {
     padding: 0;
     background: white;
   }
+}
+
+/* Dark mode zoom bar */
+html.dark .zoom-toolbar {
+  --zoom-bar-bg: #181a24;
+  --zoom-bar-border: #2a2d3a;
+  --zoom-btn-bg: #1e2030;
+  --zoom-btn-hover: #2a2d3a;
 }
 </style>
