@@ -44,30 +44,45 @@ const zoomLevel = ref<number>(100)
 const panX = ref(0)
 const panY = ref(0)
 const isPanning = ref(false)
-const panStart = ref({ x: 0, y: 0, ox: 0, oy: 0 })
+const panStart = ref<{ x: number; y: number; ox: number; oy: number; captured: boolean } | null>(null)
+const PAN_THRESHOLD = 10 // px movement before we commit to pan mode
 
 const boardTransform = computed(() =>
   `translate(${panX.value}px, ${panY.value}px) scale(${zoomLevel.value / 100})`
 )
 
 function startPan(e: PointerEvent) {
-  // Don't start a pan if the click originated on the board itself
-  const wrapper = zoomWrapperRef.value
-  if (wrapper && wrapper.contains(e.target as Node) && e.target !== wrapper) return
-  if (zoomLevel.value === 100) return // no panning needed at 100%
-  isPanning.value = true
-  panStart.value = { x: e.clientX, y: e.clientY, ox: panX.value, oy: panY.value }
-  ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  if (zoomLevel.value === 100) return
+  // Record start — but do NOT capture the pointer yet.
+  // Let the event propagate to board cells normally.
+  panStart.value = { x: e.clientX, y: e.clientY, ox: panX.value, oy: panY.value, captured: false }
 }
 
 function doPan(e: PointerEvent) {
-  if (!isPanning.value) return
-  panX.value = panStart.value.ox + (e.clientX - panStart.value.x)
-  panY.value = panStart.value.oy + (e.clientY - panStart.value.y)
+  if (!panStart.value || zoomLevel.value === 100) return
+  const dx = e.clientX - panStart.value.x
+  const dy = e.clientY - panStart.value.y
+
+  // Only commit to pan after threshold is crossed
+  if (!isPanning.value) {
+    if (Math.sqrt(dx * dx + dy * dy) < PAN_THRESHOLD) return
+    isPanning.value = true
+    // Capture pointer so we get all further events even if finger moves off board
+    if (!panStart.value.captured) {
+      panStart.value.captured = true
+      try { mainContentRef.value?.setPointerCapture(e.pointerId) } catch {}
+    }
+  }
+
+  panX.value = panStart.value.ox + dx
+  panY.value = panStart.value.oy + dy
+  e.preventDefault() // prevent scroll on mobile once panning
+  e.stopPropagation()
 }
 
 function endPan() {
   isPanning.value = false
+  panStart.value = null
 }
 
 // Reset pan when returning to 100%
@@ -447,12 +462,19 @@ html.dark .export-progress-card {
 }
 
 .main-content {
-  position: relative;
-  overflow: hidden; /* NO scrollbars ever — it's a canvas */
+  /* Canvas container — no scrollbars ever */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   height: 100dvh;
   background: #f0f2f5;
-  /* Cursor hints */
+  position: relative;
+  /* Disable browser pan/zoom so we handle all touch ourselves */
+  touch-action: none;
   cursor: default;
+  /* Prevent accidental text selection during pan */
+  user-select: none;
 }
 
 .main-content.is-zoomable {
@@ -461,21 +483,14 @@ html.dark .export-progress-card {
 
 .main-content.is-panning {
   cursor: grabbing;
-  /* Prevent text selection while panning */
-  user-select: none;
 }
 
 .board-zoom-wrapper {
-  /* Center the board in the canvas at all times */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  /* transform set inline: translate(panX, panY) scale(zoom) — origin: center center */
+  /* Let flexbox center it; transform (translate+scale) applied inline */
   width: min(800px, calc(100% - 4rem));
-  /* Pull back to center before transform is applied */
-  margin-left: calc(-1 * min(800px, calc(100% - 4rem)) / 2);
-  margin-top: -50dvh; /* roughly center vertically before translate */
-  padding-top: calc(50dvh - 24px); /* offset for zoom bar */
+  flex-shrink: 0;
+  /* transform-origin: center center already default */
+  will-change: transform;
 }
 
 /* ---- Zoom Toolbar ---- */
@@ -483,7 +498,7 @@ html.dark .export-progress-card {
   position: fixed;
   bottom: 0;
   right: 0;
-  left: var(--sidebar-width, 340px); /* align with main column */
+  left: var(--sidebar-width, 340px);
   height: 48px;
   display: flex;
   align-items: center;
@@ -492,7 +507,9 @@ html.dark .export-progress-card {
   padding: 0 1.5rem;
   background: var(--zoom-bar-bg, #f0f2f5);
   border-top: 1px solid var(--zoom-bar-border, #e2e8f0);
-  z-index: 50;
+  z-index: 200; /* above everything */
+  pointer-events: all; /* always clickable even if parent has pointer-events: none */
+  touch-action: auto; /* restore normal touch behaviour for slider/buttons */
 }
 
 .zoom-btn {
@@ -612,19 +629,16 @@ html.dark .export-progress-card {
   }
 
   .main-content {
-    height: calc(100dvh - 56px); /* subtract mobile header */
+    height: calc(100dvh - 56px);
     margin-top: 56px;
   }
 
   .board-zoom-wrapper {
-    /* Adjust centering for mobile (no sidebar offset) */
     width: min(800px, calc(100vw - 1rem));
-    margin-left: calc(-1 * min(800px, calc(100vw - 1rem)) / 2);
-    padding-top: calc(50% - 24px);
   }
 
   .zoom-toolbar {
-    left: 0; /* full width on mobile, no sidebar */
+    left: 0;
   }
 }
 
