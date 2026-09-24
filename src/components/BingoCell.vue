@@ -261,7 +261,7 @@ const cancelEdit = () => {
 }
 
 .cell-text.no-word-break {
-  word-break: keep-all;
+  word-break: normal;
   overflow-wrap: normal;
   hyphens: none;
   display: block;

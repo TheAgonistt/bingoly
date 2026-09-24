@@ -40,6 +40,14 @@ const sidebarOpen = ref<boolean>(typeof window !== 'undefined' && window.innerWi
 const isDark = ref<boolean>(true)
 const exportProgress = ref<{ current: number; total: number } | null>(null)
 const zoomLevel = ref<number>(100)
+const previewCellUpdates = ref<{ id: string; updates: CellUpdate } | null>(null)
+
+// Cells displayed on the board (includes real-time preview while edit modal is open)
+const displayCells = computed(() => {
+  if (!previewCellUpdates.value) return cells.value
+  const { id, updates } = previewCellUpdates.value
+  return cells.value.map((c) => (c.id === id ? { ...c, ...updates } : c))
+})
 
 // Pan state
 const panX = ref(0)
@@ -195,17 +203,30 @@ function handleEditCell(id: string) {
   const cell = cells.value.find((c) => c.id === id)
   if (cell) {
     editingCell.value = cell
+    previewCellUpdates.value = null
     showCellEdit.value = true
   }
 }
 
-function handleCellUpdate(payload: { id: string; updates: CellUpdate }) {
-  updateCell(payload.id, payload.updates)
+function handlePreviewCell(payload: { id: string; updates: CellUpdate }) {
+  previewCellUpdates.value = payload
+}
+
+function handleCloseCellEdit() {
+  previewCellUpdates.value = null
+  showCellEdit.value = false
+  editingCell.value = null
 }
 
 function handleSaveCell(payload: { id: string; updates: CellUpdate }) {
+  previewCellUpdates.value = null
   updateCell(payload.id, payload.updates)
   showCellEdit.value = false
+  editingCell.value = null
+}
+
+function handleCellUpdate(payload: { id: string; updates: CellUpdate }) {
+  updateCell(payload.id, payload.updates)
 }
 
 function handleConfigUpdate(partial: Partial<BingoConfig>) {
@@ -292,7 +313,7 @@ function handleReorder(newCells: BingoCell[]) {
       >
         <BingoBoard 
           ref="boardComponent" 
-          :cells="cells" 
+          :cells="displayCells" 
           :config="config" 
           :mode="mode" 
           @update:cell="handleCellUpdate"
@@ -330,8 +351,9 @@ function handleReorder(newCells: BingoCell[]) {
     <CellEditModal 
       :cell="editingCell" 
       :open="showCellEdit" 
-      @close="showCellEdit = false" 
+      @close="handleCloseCellEdit" 
       @save="handleSaveCell" 
+      @preview="handlePreviewCell"
     />
 
     <!-- Export Progress Overlay -->

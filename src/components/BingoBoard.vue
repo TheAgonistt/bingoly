@@ -130,8 +130,7 @@ const themeStyles = computed(() => ({
 
 .card-subtitle {
   text-align: center;
-  font-size: 0.9rem;
-  opacity: 0.7;
+  line-height: 1.4;
   margin-bottom: 1rem;
 }
 

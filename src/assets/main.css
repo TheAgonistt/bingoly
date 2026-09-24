@@ -57,6 +57,11 @@ dialog::backdrop {
   backdrop-filter: blur(4px);
 }
 
+dialog.edit-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.25) !important;
+  backdrop-filter: none !important;
+}
+
 /* ===== Default Theme Custom Properties ===== */
 :root {
   --primary-color: #6c5ce7;
@@ -122,6 +127,11 @@ html.dark dialog {
 
 html.dark dialog::backdrop {
   background: rgba(0, 0, 0, 0.65) !important;
+}
+
+html.dark dialog.edit-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: none !important;
 }
 
 /* Dark mode app surfaces */

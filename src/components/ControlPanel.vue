@@ -495,23 +495,30 @@ const setBorderRadiusValue = (val: string) => {
   color: #475569;
 }
 
-input[type="text"], select {
+input[type="text"], textarea, select {
   width: 100%;
   padding: 0.5rem;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   font-size: 0.9rem;
+  font-family: inherit;
   transition: border-color 0.2s;
 }
 
-input[type="text"]:focus, select:focus {
+input[type="text"]:focus, textarea:focus, select:focus {
   outline: none;
   border-color: #3b82f6;
 }
 
-input[type="text"]:disabled, select:disabled {
+input[type="text"]:disabled, textarea:disabled, select:disabled {
   background: #f1f5f9;
   color: #94a3b8;
+}
+
+.subtitle-textarea {
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.4;
 }
 
 .header-letters {

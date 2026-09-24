@@ -11,6 +11,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'save', payload: { id: string; updates: CellUpdate }): void;
+  (e: 'preview', payload: { id: string; updates: CellUpdate }): void;
 }>();
 
 const dialogRef = ref<HTMLDialogElement | null>(null);
@@ -36,6 +37,20 @@ watch(() => props.open, (isOpen) => {
     dialogRef.value?.showModal();
   } else {
     dialogRef.value?.close();
+  }
+});
+
+// Emit real-time preview to the board while editing (only saved on clicking Save)
+watch([localFontSize, localWordBreak, localText], ([newSize, newWordBreak, newText]) => {
+  if (props.open && props.cell) {
+    emit('preview', {
+      id: props.cell.id,
+      updates: {
+        fontSize: newSize,
+        wordBreak: newWordBreak,
+        text: newText,
+      },
+    });
   }
 });
 
