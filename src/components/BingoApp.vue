@@ -28,6 +28,8 @@ const { exportAsImage, exportAsPdf } = useExport()
 
 // Template refs
 const boardComponent = ref<InstanceType<typeof BingoBoard> & { boardRef?: HTMLElement } | null>(null)
+const mainContentRef = ref<HTMLElement | null>(null)
+const zoomWrapperRef = ref<HTMLElement | null>(null)
 
 // Local State
 const showBulkImport = ref<boolean>(false)
@@ -37,6 +39,44 @@ const sidebarOpen = ref<boolean>(typeof window !== 'undefined' && window.innerWi
 const isDark = ref<boolean>(true)
 const exportProgress = ref<{ current: number; total: number } | null>(null)
 const zoomLevel = ref<number>(100)
+
+// Pan state
+const panX = ref(0)
+const panY = ref(0)
+const isPanning = ref(false)
+const panStart = ref({ x: 0, y: 0, ox: 0, oy: 0 })
+
+const boardTransform = computed(() =>
+  `translate(${panX.value}px, ${panY.value}px) scale(${zoomLevel.value / 100})`
+)
+
+function startPan(e: PointerEvent) {
+  // Don't start a pan if the click originated on the board itself
+  const wrapper = zoomWrapperRef.value
+  if (wrapper && wrapper.contains(e.target as Node) && e.target !== wrapper) return
+  if (zoomLevel.value === 100) return // no panning needed at 100%
+  isPanning.value = true
+  panStart.value = { x: e.clientX, y: e.clientY, ox: panX.value, oy: panY.value }
+  ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+}
+
+function doPan(e: PointerEvent) {
+  if (!isPanning.value) return
+  panX.value = panStart.value.ox + (e.clientX - panStart.value.x)
+  panY.value = panStart.value.oy + (e.clientY - panStart.value.y)
+}
+
+function endPan() {
+  isPanning.value = false
+}
+
+// Reset pan when returning to 100%
+watchEffect(() => {
+  if (zoomLevel.value === 100) {
+    panX.value = 0
+    panY.value = 0
+  }
+})
 
 // Sync dark mode class on <html>
 watchEffect(() => {
@@ -218,9 +258,21 @@ function handleReorder(newCells: BingoCell[]) {
     <!-- Mobile overlay -->
     <div class="sidebar-overlay no-print" v-if="sidebarOpen" @click="sidebarOpen = false"></div>
     
-    <!-- Main content -->
-    <main class="main-content">
-      <div class="board-zoom-wrapper" :style="{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }">
+    <!-- Main content — canvas-style pan & zoom, no scrollbars -->
+    <main
+      class="main-content"
+      ref="mainContentRef"
+      :class="{ 'is-panning': isPanning, 'is-zoomable': zoomLevel !== 100 }"
+      @pointerdown="startPan"
+      @pointermove="doPan"
+      @pointerup="endPan"
+      @pointercancel="endPan"
+    >
+      <div
+        ref="zoomWrapperRef"
+        class="board-zoom-wrapper"
+        :style="{ transform: boardTransform, transformOrigin: 'center center' }"
+      >
         <BingoBoard 
           ref="boardComponent" 
           :cells="cells" 
@@ -395,22 +447,35 @@ html.dark .export-progress-card {
 }
 
 .main-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 2rem 2rem 80px; /* bottom pad for zoom bar */
-  min-height: 100dvh;
-  background: #f0f2f5;
-  overflow-x: hidden;
   position: relative;
+  overflow: hidden; /* NO scrollbars ever — it's a canvas */
+  height: 100dvh;
+  background: #f0f2f5;
+  /* Cursor hints */
+  cursor: default;
+}
+
+.main-content.is-zoomable {
+  cursor: grab;
+}
+
+.main-content.is-panning {
+  cursor: grabbing;
+  /* Prevent text selection while panning */
+  user-select: none;
 }
 
 .board-zoom-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  /* transform is applied inline; transform-origin keeps it top-centered */
+  /* Center the board in the canvas at all times */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* transform set inline: translate(panX, panY) scale(zoom) — origin: center center */
+  width: min(800px, calc(100% - 4rem));
+  /* Pull back to center before transform is applied */
+  margin-left: calc(-1 * min(800px, calc(100% - 4rem)) / 2);
+  margin-top: -50dvh; /* roughly center vertically before translate */
+  padding-top: calc(50dvh - 24px); /* offset for zoom bar */
 }
 
 /* ---- Zoom Toolbar ---- */
@@ -547,9 +612,15 @@ html.dark .export-progress-card {
   }
 
   .main-content {
-    padding: 0.5rem;
-    padding-top: calc(56px + 0.5rem);
-    padding-bottom: 72px; /* space for zoom bar */
+    height: calc(100dvh - 56px); /* subtract mobile header */
+    margin-top: 56px;
+  }
+
+  .board-zoom-wrapper {
+    /* Adjust centering for mobile (no sidebar offset) */
+    width: min(800px, calc(100vw - 1rem));
+    margin-left: calc(-1 * min(800px, calc(100vw - 1rem)) / 2);
+    padding-top: calc(50% - 24px);
   }
 
   .zoom-toolbar {
