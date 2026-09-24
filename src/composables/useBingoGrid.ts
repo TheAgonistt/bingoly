@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import type {
   BingoCell,
   BingoConfig,
@@ -81,6 +81,38 @@ function buildCells(size: GridDimension, freeSpaceText: string, showFreeSpace: b
   return cells;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Persistence                                                        */
+/* ------------------------------------------------------------------ */
+
+const STORAGE_KEY = 'bingo-card-state-v1';
+
+interface PersistedState {
+  config: BingoConfig;
+  cells: BingoCell[];
+}
+
+function loadState(): PersistedState | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedState;
+    // Basic sanity check
+    if (!parsed.cells || !parsed.config) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveState(state: PersistedState): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // Storage full or unavailable — fail silently
+  }
+}
+
 /**
  * Fisher-Yates shuffle (in-place) on a shallow copy of the provided array.
  * Returns the new shuffled array.
@@ -101,11 +133,25 @@ function fisherYatesShuffle<T>(arr: T[]): T[] {
 /* ------------------------------------------------------------------ */
 
 export function useBingoGrid() {
-  const config = ref<BingoConfig>(defaultConfig());
+  // Restore from localStorage if available, otherwise use defaults
+  const saved = loadState();
+
+  const config = ref<BingoConfig>(saved?.config ?? defaultConfig());
   const cells = ref<BingoCell[]>(
-    buildCells(config.value.gridSize, config.value.freeSpaceText, config.value.showFreeSpace),
+    saved?.cells ?? buildCells(config.value.gridSize, config.value.freeSpaceText, config.value.showFreeSpace),
   );
-  const mode = ref<AppMode>('design');
+  const mode = ref<AppMode>('design'); // never persist mode — always start in design
+
+  // Auto-save whenever cells or config change (debounced to avoid write-on-every-keystroke)
+  let saveTimer: ReturnType<typeof setTimeout> | null = null;
+  function scheduleSave() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveState({ config: config.value, cells: cells.value });
+    }, 500);
+  }
+
+  watch([cells, config], scheduleSave, { deep: true });
 
   /* ---------- derived ---------- */
 
@@ -284,6 +330,16 @@ export function useBingoGrid() {
     );
   }
 
+  function resetToDefault(): void {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    config.value = defaultConfig();
+    cells.value = buildCells(
+      config.value.gridSize,
+      config.value.freeSpaceText,
+      config.value.showFreeSpace,
+    );
+  }
+
   return {
     // state
     config,
@@ -304,5 +360,6 @@ export function useBingoGrid() {
     updateFreeSpace,
     toggleMode,
     clearAll,
+    resetToDefault,
   };
 }

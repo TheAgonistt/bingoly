@@ -21,7 +21,8 @@ const {
   autoPopulate,
   updateFreeSpace,
   toggleMode,
-  clearAll
+  clearAll,
+  resetToDefault,
 } = useBingoGrid()
 
 const { exportAsImage, exportAsPdf } = useExport()
@@ -263,6 +264,7 @@ function handleReorder(newCells: BingoCell[]) {
         @set-grid-size="setGridSize"
         @shuffle="shuffleGrid"
         @clear-all="clearAll"
+        @reset-all="resetToDefault"
         @toggle-mode="toggleMode"
         @open-bulk-import="showBulkImport = true"
         @export-image="handleExportImage"
@@ -468,12 +470,11 @@ html.dark .export-progress-card {
   justify-content: center;
   overflow: hidden;
   height: 100dvh;
+  padding-bottom: 48px; /* reserve space for zoom toolbar */
   background: #f0f2f5;
   position: relative;
-  /* Disable browser pan/zoom so we handle all touch ourselves */
   touch-action: none;
   cursor: default;
-  /* Prevent accidental text selection during pan */
   user-select: none;
 }
 

@@ -22,6 +22,7 @@ const emit = defineEmits<{
   (e: 'update:theme', payload: Partial<CardTheme>): void;
   (e: 'shuffle'): void;
   (e: 'clear-all'): void;
+  (e: 'reset-all'): void;
   (e: 'toggle-mode'): void;
   (e: 'open-bulk-import'): void;
   (e: 'export-image', payload: { format: 'png' | 'jpeg'; count: number }): void;
@@ -274,6 +275,14 @@ const setBorderRadiusValue = (val: string) => {
         >
           <TrashIcon :size="16" />
           Clear All
+        </button>
+        <button 
+          class="btn-action btn-danger" 
+          @click="emit('reset-all')"
+          :disabled="mode === 'play'"
+        >
+          <TrashIcon :size="16" />
+          Reset Everything
         </button>
       </div>
     </details>
