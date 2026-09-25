@@ -73,7 +73,12 @@ const themeStyles = computed(() => ({
     
     <!-- Header row -->
     <div v-if="config.hasHeader" class="header-row" :style="{ '--grid-size': config.gridSize }">
-      <div v-for="(letter, index) in config.headerLetters.slice(0, config.gridSize)" :key="`header-${index}`" class="header-cell">
+      <div 
+        v-for="(letter, index) in config.headerLetters.slice(0, config.gridSize)" 
+        :key="`header-${index}`" 
+        class="header-cell"
+        :style="{ '--header-delay': `${index * 45}ms` }"
+      >
         {{ letter }}
       </div>
     </div>
@@ -92,9 +97,10 @@ const themeStyles = computed(() => ({
       :style="{ '--grid-size': config.gridSize }"
     >
       <BingoCellComponent 
-        v-for="cell in localCells" 
+        v-for="(cell, index) in localCells" 
         :key="cell.id" 
         :cell="cell" 
+        :cell-index="index"
         :mode="mode" 
         :grid-size="config.gridSize" 
         :default-word-break="config.wordBreak"
@@ -118,6 +124,18 @@ const themeStyles = computed(() => ({
   font-family: var(--font-family);
   color: var(--text-color);
   margin: 0 auto;
+  animation: card-appear 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes card-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .card-title {
@@ -126,12 +144,25 @@ const themeStyles = computed(() => ({
   font-weight: 800;
   color: var(--primary-color);
   margin-bottom: 0.25rem;
+  animation: title-appear 0.4s ease-out both;
 }
 
 .card-subtitle {
   text-align: center;
   line-height: 1.4;
   margin-bottom: 1rem;
+  animation: title-appear 0.45s ease-out both;
+}
+
+@keyframes title-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .header-row {
@@ -148,6 +179,19 @@ const themeStyles = computed(() => ({
   padding: 0.25rem 0;
   min-width: 0;
   min-height: 0;
+  animation: header-appear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: var(--header-delay, 0ms);
+}
+
+@keyframes header-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .bingo-grid {
@@ -162,6 +206,15 @@ const themeStyles = computed(() => ({
   background: color-mix(in srgb, var(--primary-color) 10%, transparent);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .bingo-card,
+  .card-title,
+  .card-subtitle,
+  .header-cell {
+    animation: none !important;
+  }
+}
+
 @media print {
   .bingo-card {
     max-width: none;
@@ -169,6 +222,12 @@ const themeStyles = computed(() => ({
     box-shadow: none;
     margin: 0;
     padding: 0;
+    animation: none !important;
+  }
+  .card-title,
+  .card-subtitle,
+  .header-cell {
+    animation: none !important;
   }
 }
 </style>

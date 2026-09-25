@@ -83,8 +83,10 @@ const props = withDefaults(defineProps<{
   mode: AppMode;
   gridSize: GridDimension;
   defaultWordBreak?: boolean;
+  cellIndex?: number;
 }>(), {
   defaultWordBreak: true,
+  cellIndex: 0,
 });
 
 const isWordBreak = computed(() => {
@@ -131,10 +133,16 @@ const effectiveFontSize = computed((): number => {
   return props.cell.fontSize ?? autoFontSize.value;
 });
 
-const cellStyles = computed(() => ({
-  '--grid-size': props.gridSize,
-  '--cell-font-size': `${Math.max(7, effectiveFontSize.value)}px`,
-}));
+const cellStyles = computed(() => {
+  const row = Math.floor(props.cellIndex / props.gridSize);
+  const col = props.cellIndex % props.gridSize;
+  const delayMs = (row + col) * 45;
+  return {
+    '--grid-size': props.gridSize,
+    '--cell-font-size': `${Math.max(7, effectiveFontSize.value)}px`,
+    '--cell-delay': `${delayMs}ms`,
+  };
+});
 
 /* ---- Touch double-tap detection ---- */
 let lastTapTime = 0;
@@ -213,6 +221,28 @@ const cancelEdit = () => {
   touch-action: manipulation;
   min-width: 0;
   min-height: 0;
+  /* Entrance animation — stagger delay computed per cell */
+  animation: cell-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: var(--cell-delay, 0ms);
+}
+
+@keyframes cell-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media print {
+  .bingo-cell { animation: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bingo-cell { animation: none; }
 }
 
 .bingo-cell.play-mode {

@@ -8,7 +8,8 @@ import {
   Pencil as PencilIcon,
   Play as PlayIcon,
   Image as ImageIcon,
-  FileText as FileTextIcon
+  FileText as FileTextIcon,
+  Megaphone as MegaphoneIcon
 } from '@lucide/vue';
 
 const props = defineProps<{
@@ -28,7 +29,11 @@ const emit = defineEmits<{
   (e: 'export-image', payload: { format: 'png' | 'jpeg'; count: number }): void;
   (e: 'export-pdf', payload: { count: number }): void;
   (e: 'set-grid-size', payload: GridDimension): void;
+  (e: 'start-caller'): void;
+  (e: 'fill-animals'): void;
 }>();
+
+const isDev = import.meta.env.DEV;
 
 const gridSizes: GridDimension[] = [3, 4, 5, 6, 7];
 const fontOptions = [
@@ -303,6 +308,21 @@ const setBorderRadiusValue = (val: string) => {
         >
           <ListIcon :size="16" />
           Bulk Import
+        </button>
+        <button 
+          class="btn-action btn-caller" 
+          @click="emit('start-caller')"
+        >
+          <MegaphoneIcon :size="16" />
+          Start Caller
+        </button>
+        <button
+          v-if="isDev"
+          class="btn-action btn-dev"
+          @click="emit('fill-animals')"
+          title="Dev only — fills cells with random animals"
+        >
+          🐾 Fill Animals
         </button>
         <button 
           class="btn-action btn-danger" 
@@ -608,6 +628,29 @@ input[type="range"] {
 .btn-danger {
   color: #ef4444;
   border-color: #fca5a5;
+}
+
+.btn-caller {
+  color: #6c5ce7;
+  border-color: #a5b4fc;
+  font-weight: 600;
+}
+
+.btn-caller:hover:not(:disabled) {
+  background: #f5f3ff;
+}
+
+.btn-dev {
+  color: #b45309;
+  border-color: #fcd34d;
+  border-style: dashed;
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+.btn-dev:hover:not(:disabled) {
+  background: #fffbeb;
+  opacity: 1;
 }
 
 .btn-danger:hover:not(:disabled) {

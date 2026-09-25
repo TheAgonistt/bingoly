@@ -325,6 +325,18 @@ export function useBingoGrid() {
     }
   }
 
+  /* ---------- fill with custom words ---------- */
+
+  function fillWithWords(words: string[]): void {
+    const shuffled = [...words].sort(() => Math.random() - 0.5);
+    let wordIdx = 0;
+    cells.value = cells.value.map((cell) => {
+      if (cell.isFreeSpace || cell.isLocked) return cell;
+      const text = wordIdx < shuffled.length ? (shuffled[wordIdx++] ?? '') : '';
+      return { ...cell, text };
+    });
+  }
+
   /* ---------- clear ---------- */
 
   function clearAll(): void {
@@ -361,6 +373,7 @@ export function useBingoGrid() {
     swapCells,
     shuffleGrid,
     autoPopulate,
+    fillWithWords,
     generateBatchCards,
     updateFreeSpace,
     toggleMode,

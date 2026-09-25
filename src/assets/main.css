@@ -194,6 +194,16 @@ html.dark .btn-mode {
   color: #8b9cf7 !important;
 }
 
+html.dark .btn-caller {
+  background: #252838 !important;
+  border-color: #5e4fcb !important;
+  color: #a5b4fc !important;
+}
+
+html.dark .btn-caller:hover:not(:disabled) {
+  background: #2e2b4a !important;
+}
+
 html.dark .btn-cancel,
 html.dark .btn-outline {
   border-color: #3a3d4a !important;

@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watchEffect, nextTick } from 'vue'
+import { ref, computed, watchEffect, nextTick } from 'vue'
 import { Menu, X, Moon, Sun } from '@lucide/vue'
 import BingoBoard from './BingoBoard.vue'
 import ControlPanel from './ControlPanel.vue'
 import BulkImportModal from './BulkImportModal.vue'
 import CellEditModal from './CellEditModal.vue'
+import CallerView from './CallerView.vue'
 import { useBingoGrid } from '@/composables/useBingoGrid'
 import { useExport } from '@/composables/useExport'
 import type { BingoCell, BingoConfig, CardTheme, CellUpdate } from '@/types/bingo'
+import { ANIMALS } from '@/data/animals'
 
 const {
   config,
@@ -23,6 +25,7 @@ const {
   toggleMode,
   clearAll,
   resetToDefault,
+  fillWithWords,
 } = useBingoGrid()
 
 const { exportAsImage, exportAsPdf } = useExport()
@@ -41,6 +44,7 @@ const isDark = ref<boolean>(true)
 const exportProgress = ref<{ current: number; total: number } | null>(null)
 const zoomLevel = ref<number>(100)
 const previewCellUpdates = ref<{ id: string; updates: CellUpdate } | null>(null)
+const isCallerOpen = ref<boolean>(false)
 
 // Cells displayed on the board (includes real-time preview while edit modal is open)
 const displayCells = computed(() => {
@@ -290,6 +294,8 @@ function handleReorder(newCells: BingoCell[]) {
         @open-bulk-import="showBulkImport = true"
         @export-image="handleExportImage"
         @export-pdf="handleExportPdf"
+        @start-caller="isCallerOpen = true"
+        @fill-animals="fillWithWords(ANIMALS)"
       />
     </aside>
     
@@ -354,6 +360,13 @@ function handleReorder(newCells: BingoCell[]) {
       @close="handleCloseCellEdit" 
       @save="handleSaveCell" 
       @preview="handlePreviewCell"
+    />
+
+    <!-- Bingo Caller overlay -->
+    <CallerView
+      v-if="isCallerOpen"
+      :cells="cells"
+      @exit="isCallerOpen = false"
     />
 
     <!-- Export Progress Overlay -->
