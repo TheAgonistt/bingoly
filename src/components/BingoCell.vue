@@ -6,7 +6,8 @@
       'free-space': cell.isFreeSpace,
       'marked': cell.marked,
       'play-mode': mode === 'play',
-      'no-word-break': !isWordBreak
+      'no-word-break': !isWordBreak,
+      'initial-animate': initialAnimate
     }"
     :style="cellStyles"
     @click="handleClick"
@@ -84,9 +85,11 @@ const props = withDefaults(defineProps<{
   gridSize: GridDimension;
   defaultWordBreak?: boolean;
   cellIndex?: number;
+  initialAnimate?: boolean;
 }>(), {
   defaultWordBreak: true,
   cellIndex: 0,
+  initialAnimate: false,
 });
 
 const isWordBreak = computed(() => {
@@ -221,7 +224,10 @@ const cancelEdit = () => {
   touch-action: manipulation;
   min-width: 0;
   min-height: 0;
-  /* Entrance animation — stagger delay computed per cell */
+}
+
+/* Entrance animation — only applied on initial app load */
+.bingo-cell.initial-animate {
   animation: cell-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   animation-delay: var(--cell-delay, 0ms);
 }
@@ -238,11 +244,11 @@ const cancelEdit = () => {
 }
 
 @media print {
-  .bingo-cell { animation: none; }
+  .bingo-cell { animation: none !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bingo-cell { animation: none; }
+  .bingo-cell { animation: none !important; }
 }
 
 .bingo-cell.play-mode {

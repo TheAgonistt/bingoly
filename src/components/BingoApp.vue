@@ -45,6 +45,7 @@ const exportProgress = ref<{ current: number; total: number } | null>(null)
 const zoomLevel = ref<number>(100)
 const previewCellUpdates = ref<{ id: string; updates: CellUpdate } | null>(null)
 const isCallerOpen = ref<boolean>(false)
+const isExporting = ref<boolean>(false)
 
 // Cells displayed on the board (includes real-time preview while edit modal is open)
 const displayCells = computed(() => {
@@ -119,6 +120,7 @@ const unlockedCount = computed(() => {
 // Event Handlers
 async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: number }) {
   if (boardComponent.value?.boardRef) {
+    isExporting.value = true
     const originalCells = [...cells.value]
     const originalMode = mode.value
     
@@ -153,6 +155,7 @@ async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: numbe
       if (payload.count > 1) {
         cells.value = originalCells
       }
+      isExporting.value = false
       await nextTick()
     }
   }
@@ -160,6 +163,7 @@ async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: numbe
 
 async function handleExportPdf(payload: { count: number }) {
   if (boardComponent.value?.boardRef) {
+    isExporting.value = true
     const originalCells = [...cells.value]
     const originalMode = mode.value
     
@@ -193,6 +197,7 @@ async function handleExportPdf(payload: { count: number }) {
       if (payload.count > 1) {
         cells.value = originalCells
       }
+      isExporting.value = false
       await nextTick()
     }
   }
@@ -322,6 +327,7 @@ function handleReorder(newCells: BingoCell[]) {
           :cells="displayCells" 
           :config="config" 
           :mode="mode" 
+          :is-exporting="isExporting"
           @update:cell="handleCellUpdate"
           @edit-cell="handleEditCell"
           @toggle-lock="toggleLock"

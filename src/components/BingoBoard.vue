@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import type { BingoCell, BingoConfig, AppMode, CellUpdate } from '@/types/bingo'
 import BingoCellComponent from './BingoCell.vue'
@@ -8,7 +8,18 @@ const props = defineProps<{
   cells: BingoCell[]
   config: BingoConfig
   mode: AppMode
+  isExporting?: boolean
 }>()
+
+const isInitialLoad = ref(true)
+
+onMounted(() => {
+  setTimeout(() => {
+    isInitialLoad.value = false
+  }, 1200)
+})
+
+const shouldAnimate = computed(() => isInitialLoad.value && !props.isExporting)
 
 const emit = defineEmits<{
   (e: 'update:cell', payload: { id: string; updates: CellUpdate }): void
@@ -58,7 +69,12 @@ const themeStyles = computed(() => ({
 </script>
 
 <template>
-  <div ref="boardRef" class="bingo-card" :style="themeStyles">
+  <div 
+    ref="boardRef" 
+    class="bingo-card" 
+    :class="{ 'initial-animate': shouldAnimate, 'is-exporting': isExporting }" 
+    :style="themeStyles"
+  >
     <!-- Title -->
     <h1 v-if="config.title" class="card-title">{{ config.title }}</h1>
     <p 
@@ -101,6 +117,7 @@ const themeStyles = computed(() => ({
         :key="cell.id" 
         :cell="cell" 
         :cell-index="index"
+        :initial-animate="shouldAnimate"
         :mode="mode" 
         :grid-size="config.gridSize" 
         :default-word-break="config.wordBreak"
@@ -124,18 +141,10 @@ const themeStyles = computed(() => ({
   font-family: var(--font-family);
   color: var(--text-color);
   margin: 0 auto;
-  animation: card-appear 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes card-appear {
-  from {
-    opacity: 0;
-    transform: scale(0.98) translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+.bingo-card.initial-animate {
+  animation: card-appear 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .card-title {
@@ -144,25 +153,12 @@ const themeStyles = computed(() => ({
   font-weight: 800;
   color: var(--primary-color);
   margin-bottom: 0.25rem;
-  animation: title-appear 0.4s ease-out both;
 }
 
 .card-subtitle {
   text-align: center;
   line-height: 1.4;
   margin-bottom: 1rem;
-  animation: title-appear 0.45s ease-out both;
-}
-
-@keyframes title-appear {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .header-row {
@@ -179,8 +175,41 @@ const themeStyles = computed(() => ({
   padding: 0.25rem 0;
   min-width: 0;
   min-height: 0;
+}
+
+.bingo-card.initial-animate .card-title {
+  animation: title-appear 0.4s ease-out both;
+}
+
+.bingo-card.initial-animate .card-subtitle {
+  animation: title-appear 0.45s ease-out both;
+}
+
+.bingo-card.initial-animate .header-cell {
   animation: header-appear 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   animation-delay: var(--header-delay, 0ms);
+}
+
+@keyframes card-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes title-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes header-appear {
@@ -204,6 +233,12 @@ const themeStyles = computed(() => ({
 .ghost {
   opacity: 0.4;
   background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+}
+
+.bingo-card.is-exporting,
+.bingo-card.is-exporting * {
+  animation: none !important;
+  transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

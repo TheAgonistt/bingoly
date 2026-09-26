@@ -29,6 +29,8 @@ export function useExport() {
       style: {
         margin: '0',
         transform: 'none',
+        animation: 'none',
+        transition: 'none',
       },
     };
 
@@ -99,6 +101,8 @@ export function useExport() {
         style: {
           margin: '0',
           transform: 'none',
+          animation: 'none',
+          transition: 'none',
         },
       });
 
