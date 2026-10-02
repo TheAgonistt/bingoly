@@ -26,6 +26,7 @@ const {
   clearAll,
   resetToDefault,
   fillWithWords,
+  applyWordBankSelection,
 } = useBingoGrid()
 
 const { exportAsImage, exportAsPdf } = useExport()
@@ -118,7 +119,7 @@ const unlockedCount = computed(() => {
 })
 
 // Event Handlers
-async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: number }) {
+async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: number; useWordBank: boolean }) {
   if (boardComponent.value?.boardRef) {
     isExporting.value = true
     const originalCells = [...cells.value]
@@ -131,7 +132,9 @@ async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: numbe
     
     const progressCb = async (current: number, total: number) => {
       exportProgress.value = { current, total }
-      if (current > 1) {
+      const shouldApplyBank = payload.useWordBank && (config.value.wordBank?.length ?? 0) > 0
+      if (current > 1 || shouldApplyBank) {
+        if (shouldApplyBank) applyWordBankSelection()
         shuffleGrid()
         await nextTick()
         await new Promise(r => setTimeout(r, 100))
@@ -152,7 +155,7 @@ async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: numbe
     } finally {
       exportProgress.value = null
       mode.value = originalMode
-      if (payload.count > 1) {
+      if (payload.count > 1 || payload.useWordBank) {
         cells.value = originalCells
       }
       isExporting.value = false
@@ -161,7 +164,7 @@ async function handleExportImage(payload: { format: 'png' | 'jpeg'; count: numbe
   }
 }
 
-async function handleExportPdf(payload: { count: number }) {
+async function handleExportPdf(payload: { count: number; useWordBank: boolean }) {
   if (boardComponent.value?.boardRef) {
     isExporting.value = true
     const originalCells = [...cells.value]
@@ -174,7 +177,9 @@ async function handleExportPdf(payload: { count: number }) {
     
     const progressCb = async (current: number, total: number) => {
       exportProgress.value = { current, total }
-      if (current > 1) {
+      const shouldApplyBank = payload.useWordBank && (config.value.wordBank?.length ?? 0) > 0
+      if (current > 1 || shouldApplyBank) {
+        if (shouldApplyBank) applyWordBankSelection()
         shuffleGrid()
         await nextTick()
         await new Promise(r => setTimeout(r, 100))
@@ -194,7 +199,7 @@ async function handleExportPdf(payload: { count: number }) {
     } finally {
       exportProgress.value = null
       mode.value = originalMode
-      if (payload.count > 1) {
+      if (payload.count > 1 || payload.useWordBank) {
         cells.value = originalCells
       }
       isExporting.value = false
@@ -372,6 +377,8 @@ function handleReorder(newCells: BingoCell[]) {
     <CallerView
       v-if="isCallerOpen"
       :cells="cells"
+      :config="config"
+      @update:config="handleConfigUpdate"
       @exit="isCallerOpen = false"
     />
 

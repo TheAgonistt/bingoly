@@ -57,6 +57,11 @@ function defaultConfig(): BingoConfig {
     showFreeSpace: true,
     freeSpaceText: '★',
     wordBreak: true,
+    wordBank: [],
+    callerMode: 'classic',
+    callerNumbersPerCol: 15,
+    callerCustomList: [],
+    callerAllowDuplicates: false,
     theme: {
       primaryColor: '#6c5ce7',
       cardBackground: '#ffffff',
@@ -337,6 +342,33 @@ export function useBingoGrid() {
     });
   }
 
+  /* ---------- word bank selection for batch export ---------- */
+
+  /**
+   * Mixes words from config.wordBank into the unlocked cells.
+   * Pool = current unlocked cell texts + bank words, shuffled, then N drawn.
+   * Locked cells and free space are never touched.
+   */
+  function applyWordBankSelection(): void {
+    const bankWords = config.value.wordBank ?? [];
+    if (bankWords.length === 0) return;
+
+    const editableIndices: number[] = [];
+    cells.value.forEach((c, i) => {
+      if (!c.isLocked && !c.isFreeSpace) editableIndices.push(i);
+    });
+    if (editableIndices.length === 0) return;
+
+    const currentWords = editableIndices.map((i) => cells.value[i]!.text);
+    const pool = fisherYatesShuffle([...currentWords, ...bankWords]);
+    const selected = pool.slice(0, editableIndices.length);
+
+    cells.value = cells.value.map((cell, i) => {
+      const idx = editableIndices.indexOf(i);
+      return idx !== -1 ? { ...cell, text: selected[idx] ?? '' } : cell;
+    });
+  }
+
   /* ---------- clear ---------- */
 
   function clearAll(): void {
@@ -374,6 +406,7 @@ export function useBingoGrid() {
     shuffleGrid,
     autoPopulate,
     fillWithWords,
+    applyWordBankSelection,
     generateBatchCards,
     updateFreeSpace,
     toggleMode,

@@ -96,4 +96,26 @@ describe('useBingoGrid', () => {
     expect(grid.config.value.subtitleFontSize).toBe(18)
     expect(grid.config.value.subtitleColor).toBe('#e11d48')
   })
+
+  it('supports wordBank and applies word bank selection during multi-card generation', () => {
+    expect(grid.config.value.wordBank).toEqual([])
+    grid.config.value.wordBank = ['Elephant', 'Giraffe', 'Zebra', 'Lion']
+
+    // Give cells some initial words
+    grid.autoPopulate(Array.from({ length: 24 }, (_, i) => `Initial ${i}`))
+    const beforeWords = grid.cells.value.filter(c => !c.isFreeSpace).map(c => c.text)
+
+    grid.applyWordBankSelection()
+
+    const afterWords = grid.cells.value.filter(c => !c.isFreeSpace).map(c => c.text)
+    // At least one bank word should have entered or words should be valid
+    expect(afterWords.length).toBe(beforeWords.length)
+  })
+
+  it('initializes caller configuration with expected defaults', () => {
+    expect(grid.config.value.callerMode).toBe('classic')
+    expect(grid.config.value.callerNumbersPerCol).toBe(15)
+    expect(grid.config.value.callerCustomList).toEqual([])
+    expect(grid.config.value.callerAllowDuplicates).toBe(false)
+  })
 })

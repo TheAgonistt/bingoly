@@ -320,3 +320,110 @@ html.dark .dark-toggle {
 html.dark .dark-toggle:hover {
   background: #2e3142;
 }
+
+/* Dark mode panel section headers */
+html.dark .panel-section {
+  background: #1e2030 !important;
+  border-color: #2a2d3a !important;
+}
+
+html.dark .panel-section summary {
+  background: #252838 !important;
+  color: #8b90a0 !important;
+}
+
+html.dark .panel-section summary::after {
+  color: #5a5f72 !important;
+}
+
+/* Dark mode form inputs inside panel */
+html.dark .section-content input[type="text"],
+html.dark .section-content input[type="number"],
+html.dark .section-content textarea,
+html.dark .section-content select {
+  background: #252838 !important;
+  border-color: #3a3d4a !important;
+  color: #c8cdd8 !important;
+}
+
+html.dark .section-content input[type="text"]:focus,
+html.dark .section-content input[type="number"]:focus,
+html.dark .section-content textarea:focus,
+html.dark .section-content select:focus {
+  border-color: #6c5ce7 !important;
+}
+
+html.dark .section-content input[type="text"]:disabled,
+html.dark .section-content input[type="number"]:disabled,
+html.dark .section-content textarea:disabled,
+html.dark .section-content select:disabled {
+  background: #1e2030 !important;
+  color: #3a3d4a !important;
+}
+
+/* Dark mode hints */
+html.dark .hint,
+html.dark .hint-inline,
+html.dark .auto-hint {
+  color: #4a4f62 !important;
+}
+
+/* Dark mode word bank badge */
+html.dark .badge {
+  background: #2e2b4a !important;
+  color: #a5b4fc !important;
+}
+
+/* Dark mode divider */
+html.dark .divider {
+  background: #2a2d3a !important;
+}
+
+/* Dark mode btn-export */
+html.dark .btn-export {
+  background: #252838 !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  html.dark .btn-export:hover:not(:disabled) {
+    background: #2e2b4a !important;
+  }
+}
+
+/* Dark mode btn-dev */
+html.dark .btn-dev {
+  color: #d97706 !important;
+  border-color: #92400e !important;
+}
+html.dark .btn-dev:hover:not(:disabled) {
+  background: #1c1508 !important;
+}
+
+/* Dark mode label-icon */
+html.dark .label-icon {
+  color: #8b90a0 !important;
+}
+
+/* Dark mode form-group and form-group-inline labels */
+html.dark .field-header label {
+  color: #8b90a0 !important;
+}
+
+/* Dark mode caller mode selector */
+html.dark .btn-caller-mode {
+  background: #252838 !important;
+  border-color: #3a3d4a !important;
+  color: #94a3b8 !important;
+}
+html.dark .btn-caller-mode:hover {
+  background: #2e3142 !important;
+  color: #e2e8f0 !important;
+}
+html.dark .btn-caller-mode.active {
+  background: #6c5ce7 !important;
+  border-color: #6c5ce7 !important;
+  color: #ffffff !important;
+}
+html.dark .col-range-tag {
+  background: #252838 !important;
+  color: #94a3b8 !important;
+}

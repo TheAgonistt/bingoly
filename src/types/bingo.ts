@@ -48,7 +48,20 @@ export interface BingoConfig {
   showFreeSpace: boolean;
   /** Default word-break behavior for cells. Default: true. */
   wordBreak?: boolean;
+  /** Pool of extra words/phrases available when generating randomized export cards. */
+  wordBank: string[];
+  /** Calling mode for the bingo caller: classic coordinates, current board cells, or custom word list. */
+  callerMode?: CallerMode;
+  /** Numbers per column in classic bingo mode (default: 15 for 75-ball: 1-15, 16-30, ...). */
+  callerNumbersPerCol?: number;
+  /** Custom list of words/phrases for caller in 'custom' mode. */
+  callerCustomList?: string[];
+  /** In custom caller mode, allow items to be drawn multiple times indefinitely. */
+  callerAllowDuplicates?: boolean;
 }
+
+/** Supported modes for the Bingo Caller. */
+export type CallerMode = 'classic' | 'board' | 'custom';
 
 /** The two application modes. */
 export type AppMode = 'design' | 'play';
